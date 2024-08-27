@@ -1,1 +1,2 @@
-This is a starter template for [Learn Next.js](https://nextjs.org/learn).
+# productivity-tracker
+7th Semester Human Technology Interaction project
