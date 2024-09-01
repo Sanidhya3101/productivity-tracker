@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { BellIcon, CalendarIcon, MoonIcon, SunIcon, GearIcon, PersonIcon } from '@radix-ui/react-icons';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-
+import { useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -36,6 +36,25 @@ export default function Home() {
   const cameraStreamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const startTimeRef = useRef(null);
+  const websocketRef = useRef(null);
+  const [productivityScore, setProductivityScore] = useState(85);
+
+  useEffect(() => {
+    // Set up WebSocket connection
+    console.log("Setting up websocket connection")
+    websocketRef.current = new WebSocket('ws://localhost:8000/ws');
+
+    websocketRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setProductivityScore(data.productivityScore);
+    };
+
+    return () => {
+      if (websocketRef.current) {
+        websocketRef.current.close();
+      }
+    };
+  }, []);
 
   // const toggleDarkMode = () => {
   //   setIsDarkMode(!isDarkMode)
@@ -50,13 +69,17 @@ export default function Home() {
       screenStreamRef.current = screenStream;
       cameraStreamRef.current = cameraStream;
 
-      const combinedStream = new MediaStream([
-        ...screenStream.getVideoTracks(),
-        ...cameraStream.getVideoTracks(),
-      ]);
+      // const combinedStream = new MediaStream([
+      //   ...screenStream.getVideoTracks(),
+      //   ...cameraStream.getVideoTracks(),
+      // ]);
 
-      mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
-      mediaRecorderRef.current.start();
+      // mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
+      // mediaRecorderRef.current.start();
+
+      // Start sending video frames to the backend
+      sendVideoFrames(screenStream, 'screen');
+      sendVideoFrames(cameraStream, 'camera');
 
       setIsRecording(true);
       startTimeRef.current = Date.now();
@@ -66,9 +89,9 @@ export default function Home() {
   };
 
   const handleStopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-    }
+    // if (mediaRecorderRef.current) {
+    //   mediaRecorderRef.current.stop();
+    // }
     if (screenStreamRef.current) {
       screenStreamRef.current.getTracks().forEach((track) => track.stop());
     }
@@ -78,7 +101,7 @@ export default function Home() {
 
     const endTime = Date.now();
     const sessionDuration = Math.round((endTime - startTimeRef.current) / 1000); // session time in seconds
-    const productivityScore = Math.floor(Math.random() * 100); // Placeholder for real analysis
+    // const productivityScore = Math.floor(Math.random() * 100); // Placeholder for real analysis
 
     setReport({
       sessionTime: `${sessionDuration} seconds`,
@@ -86,6 +109,37 @@ export default function Home() {
     });
 
     setIsRecording(false);
+  };
+
+  const sendVideoFrames = (stream, streamType) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.play();
+
+    const sendFrame = () => {
+      if (!isRecording) return;
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          websocketRef.current.send(JSON.stringify({
+            type: streamType,
+            frame: reader.result
+          }));
+        };
+        reader.readAsDataURL(blob);
+      }, 'image/jpeg', 0.8);
+
+      requestAnimationFrame(sendFrame);
+    };
+
+    sendFrame();
   };
 
   return (
