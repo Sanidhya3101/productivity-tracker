@@ -1,69 +1,73 @@
-import { useState, useEffect, useRef } from "react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Clock, RotateCcw } from "lucide-react"
+import { useState, useEffect, useRef } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Clock, RotateCcw } from "lucide-react";
 
 export default function TypingTest() {
   const [text] = useState(
     "the quick brown fox jumps over the lazy dog while the mighty lion sleeps peacefully beneath the warm summer sun and gentle breeze rustles through the tall grass creating a serene atmosphere in the wild"
-  )
-  const [input, setInput] = useState("")
-  const [startTime, setStartTime] = useState(null)
-  const [endTime, setEndTime] = useState(null)
-  const [isActive, setIsActive] = useState(false)
-  const [errorCount, setErrorCount] = useState(0)
-  const inputRef = useRef(null)
+  );
+  const [input, setInput] = useState("");
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [isActive, setIsActive] = useState(false);
+  const [errorCount, setErrorCount] = useState(0);
+  const [totalErrors, setTotalErrors] = useState(0);
+  const inputRef = useRef(null);
 
-  const words = text.trim().split(/\s+/).length
-  const characters = text.length
+  const words = text.trim().split(/\s+/).length;
 
   const accuracy = endTime
-    ? (((input.length - errorCount) / input.length) * 100).toFixed(1)
-    : null
+    ? (((input.length - totalErrors) / input.length) * 100).toFixed(1)
+    : null;
 
   const wpm = endTime
-    ? Math.round((input.trim().split(/\s+/).length / ((endTime - startTime) / 1000 / 60)))
-    : null
+    ? Math.round(
+        input.trim().split(/\s+/).length / ((endTime - startTime) / 1000 / 60)
+      )
+    : null;
 
   useEffect(() => {
     if (input.length === 1 && !startTime) {
-      setStartTime(Date.now())
-      setIsActive(true)
+      setStartTime(Date.now());
+      setIsActive(true);
     }
 
     if (input.length > 0) {
       // Update error count
-      let errors = 0
+      let errors = 0;
       for (let i = 0; i < input.length; i++) {
         if (input[i] !== text[i]) {
-          errors++
+          errors++;
         }
       }
-      setErrorCount(errors)
+      setErrorCount(errors);
     } else {
-      setErrorCount(0)
+      setErrorCount(0);
     }
 
-    if (input === text) {
-      setEndTime(Date.now())
-      setIsActive(false)
+    // End test when input length matches text length
+    if (input.length === text.length) {
+      setEndTime(Date.now());
+      setIsActive(false);
     }
-  }, [input, startTime, text])
+  }, [input, startTime, text]);
 
   const reset = () => {
-    setInput("")
-    setStartTime(null)
-    setEndTime(null)
-    setIsActive(false)
-    setErrorCount(0)
+    setInput("");
+    setStartTime(null);
+    setEndTime(null);
+    setIsActive(false);
+    setErrorCount(0);
+    setTotalErrors(0);
     if (inputRef.current) {
-      inputRef.current.focus()
+      inputRef.current.focus();
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background p-8 flex items-center justify-center">
-      <Card className="w-full max-w-5xl p-10 space-y-10">
+      <Card className="w-full max-w-4xl p-10 space-y-10">
         {/* Header */}
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold">Typing Test</h1>
@@ -82,20 +86,22 @@ export default function TypingTest() {
             {text}
           </div>
           {/* User Input Overlay */}
-          <div className="absolute top-8 left-8 font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none leading-relaxed">
-            {input.split("").map((char, i) => {
-              const expectedChar = text[i]
-              let className = ""
-              if (char === expectedChar) {
-                className = "text-green-600"
+          <div className="absolute top-8 left-8 right-8 bottom-8 font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none leading-relaxed">
+            {[...text].map((expectedChar, i) => {
+              const char = input[i];
+              let className = "";
+              if (char == null) {
+                className = "";
+              } else if (char === expectedChar) {
+                className = "text-green-400";
               } else {
-                className = "text-red-600"
+                className = "text-red-600";
               }
               return (
                 <span key={i} className={className}>
-                  {char}
+                  {expectedChar}
                 </span>
-              )
+              );
             })}
           </div>
           {/* Invisible Input Field */}
@@ -103,9 +109,19 @@ export default function TypingTest() {
             ref={inputRef}
             value={input}
             onChange={(e) => {
-              const value = e.target.value
+              const value = e.target.value;
               if (value.length <= text.length && !endTime) {
-                setInput(value)
+                setInput(value);
+                // Check for errors on new character
+                const position = value.length - 1;
+                if (position >= 0) {
+                  if (
+                    value[position] !== text[position] &&
+                    value.length > input.length
+                  ) {
+                    setTotalErrors((prev) => prev + 1);
+                  }
+                }
               }
             }}
             className="absolute inset-0 w-full h-full opacity-0 cursor-default"
@@ -114,12 +130,18 @@ export default function TypingTest() {
             onCopy={(e) => e.preventDefault()}
             onCut={(e) => e.preventDefault()}
             onContextMenu={(e) => e.preventDefault()}
+            onKeyDown={(e) => {
+              if (e.key === "Backspace") {
+                // Do not count backspace as a keystroke
+                return;
+              }
+            }}
           />
         </div>
 
         {/* Statistics */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex items-center gap-3 mb-4 md:mb-0">
             <Clock className="h-6 w-6" />
             <span className="text-2xl font-bold">
               {startTime && !endTime
@@ -132,7 +154,7 @@ export default function TypingTest() {
           </div>
 
           {endTime && (
-            <div className="flex gap-6 text-2xl font-bold">
+            <div className="flex flex-col md:flex-row gap-6 text-2xl font-bold">
               <div>
                 <span>{wpm}</span> WPM
               </div>
@@ -140,7 +162,7 @@ export default function TypingTest() {
                 <span>{accuracy}%</span> Accuracy
               </div>
               <div>
-                <span>{errorCount}</span> Errors
+                <span>{totalErrors}</span> Errors
               </div>
             </div>
           )}
@@ -157,5 +179,5 @@ export default function TypingTest() {
         </div>
       </Card>
     </div>
-  )
+  );
 }
