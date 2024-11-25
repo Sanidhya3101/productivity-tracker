@@ -50,11 +50,10 @@ export default function Home() {
     }
   }, [endTime]);
 
-  // Get current task progress
   const getTaskProgress = () => {
-    const taskKeys = Object.keys(TASKS);
+    const taskKeys = Object.keys(TASKS).filter((key) => key !== 'TEST_START'); // Exclude the start page
     const currentIndex = taskKeys.findIndex((key) => TASKS[key] === currentTask);
-    return `${currentIndex + 1} / ${taskKeys.length}`;
+    return currentIndex >= 0 ? `${currentIndex + 1} / ${taskKeys.length}` : '0 / 4';
   };
 
   // Render the current task component based on the state
@@ -97,9 +96,11 @@ export default function Home() {
       ) : (
         <>
           {/* Task Progress */}
-          <div className="absolute top-4 left-4 text-lg">
-            <p>Task Progress: {getTaskProgress()}</p>
-          </div>
+          {currentTask !== TASKS.TEST_START && ( // Hide progress on the start page
+            <div className="absolute top-4 left-4 text-lg">
+              <p>Task Progress: {getTaskProgress()}</p>
+            </div>
+          )}
 
           {/* Current Task */}
           {renderCurrentTask()}

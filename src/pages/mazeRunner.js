@@ -67,8 +67,21 @@ const MazeGame = ({ onTaskComplete }) => {
         maze[newRow][newCol] === 0
       ) {
         const newPosition = { row: newRow, col: newCol };
+
+        // Check if the new position is the previous position in the path (backtracking)
+        if (
+          path.length > 1 &&
+          path[path.length - 2].row === newRow &&
+          path[path.length - 2].col === newCol
+        ) {
+          // Backtracking: remove the last position
+          setPath((prevPath) => prevPath.slice(0, prevPath.length - 1));
+        } else {
+          // Moving forward: add new position to the path
+          setPath((prevPath) => [...prevPath, newPosition]);
+        }
+
         setPosition(newPosition);
-        setPath((prevPath) => [...prevPath, newPosition]);
 
         if (newRow === endPosition.row && newCol === endPosition.col) {
           setGameOver(true);
@@ -86,7 +99,7 @@ const MazeGame = ({ onTaskComplete }) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [position, gameOver, onTaskComplete]);
+  }, [position, gameOver, path, onTaskComplete]);
 
   const resetGame = () => {
     setPosition(startPosition);
@@ -111,9 +124,12 @@ const MazeGame = ({ onTaskComplete }) => {
         </div>
       ) : (
         <div style={styles.statsContainer}>
-          <p>Position: Row {position.row}, Col {position.col}</p>
+          <p>
+            Position: Row {position.row}, Col {position.col}
+          </p>
           <p>Total Moves: {totalMoves}</p>
           <p>Wrong Moves: {wrongMoves}</p>
+          <p>Use arrow keys to move through the maze.</p>
         </div>
       )}
       <div style={styles.mazeContainer}>
@@ -126,17 +142,20 @@ const MazeGame = ({ onTaskComplete }) => {
               cellContent = 'E';
             }
 
+            // Determine if the cell is part of the current path
+            const isInPath = path.some(
+              (p) => p.row === rowIndex && p.col === colIndex
+            );
+
             return (
               <div
                 key={`${rowIndex}-${colIndex}`}
                 style={{
                   ...styles.cell,
-                  backgroundColor: cell === 1 ? '#444' : '#fff',
+                  backgroundColor: cell === 1 ? '#444' : isInPath ? '#0f0' : '#fff',
                   color:
                     position.row === rowIndex && position.col === colIndex
                       ? 'red'
-                      : path.some((p) => p.row === rowIndex && p.col === colIndex)
-                      ? 'blue'
                       : 'black',
                 }}
               >
