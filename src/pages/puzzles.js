@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import Image from 'next/image'; // Import Image component from Next.js
-import puzzles1 from "../styles/img/puzzles1.png"
-import puzzles2 from "../styles/img/puzzles2.jpg"
-import puzzles3 from "../styles/img/puzzles3.png"
-import puzzles4 from "../styles/img/puzzles4.png"
-import puzzles5 from "../styles/img/puzzles5.png"
-import puzzles6 from "../styles/img/puzzles6.png"
-import puzzles7 from "../styles/img/puzzles7.png"
+import Image from 'next/image';
+import puzzles1 from "../styles/img/puzzles1.png";
+import puzzles2 from "../styles/img/puzzles2.jpg";
+import puzzles3 from "../styles/img/puzzles3.png";
+import puzzles4 from "../styles/img/puzzles4.png";
+import puzzles5 from "../styles/img/puzzles5.png";
+import puzzles6 from "../styles/img/puzzles6.png";
+import puzzles7 from "../styles/img/puzzles7.png";
 
 const puzzles = [
   {
@@ -55,7 +55,7 @@ const puzzles = [
   },
 ];
 
-export default function PuzzleGame() {
+export default function PuzzleGame({ onTaskComplete }) {
   const [isStarted, setIsStarted] = useState(false);
   const [currentPuzzle, setCurrentPuzzle] = useState(0);
   const [timeLeft, setTimeLeft] = useState(120); // 2 minutes in seconds
@@ -82,6 +82,11 @@ export default function PuzzleGame() {
   const endQuiz = () => {
     setIsFinished(true);
     setUnansweredQuestions(puzzles.length - currentPuzzle - 1);
+
+    // Notify parent when quiz ends
+    if (onTaskComplete) {
+      onTaskComplete();
+    }
   };
 
   const handleAnswer = (selectedAnswer) => {
@@ -132,8 +137,8 @@ export default function PuzzleGame() {
           <Image
             src={puzzles[currentPuzzle].image}
             alt={`Puzzle ${currentPuzzle + 1}`}
-            width={400} // Adjust width as needed
-            height={300} // Adjust height as needed
+            width={400}
+            height={300}
             className="w-full h-auto mb-4"
           />
           <div className="grid grid-cols-2 gap-4">

@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Clock, RotateCcw } from "lucide-react"
 
-export default function TypingTest() {
+export default function TypingTest({ onTaskComplete }) {
   const [text] = useState(
     "the quick brown fox jumps over the lazy dog while the mighty lion sleeps peacefully beneath the warm summer sun and gentle breeze rustles through the tall grass creating a serene atmosphere in the wild"
   )
@@ -47,8 +47,13 @@ export default function TypingTest() {
     if (input === text) {
       setEndTime(Date.now())
       setIsActive(false)
+
+      // Notify parent component that the task is complete
+      if (onTaskComplete) {
+        onTaskComplete()
+      }
     }
-  }, [input, startTime, text])
+  }, [input, startTime, text, onTaskComplete])
 
   const reset = () => {
     setInput("")
@@ -62,7 +67,7 @@ export default function TypingTest() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8 flex items-center justify-center">
+    <div className="min-h-screen bg-black text-white p-8 flex items-center justify-center">
       <Card className="w-full max-w-5xl p-10 space-y-10">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -76,7 +81,7 @@ export default function TypingTest() {
         <div className="relative border rounded-md p-8">
           {/* Displayed Text */}
           <div
-            className="font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none text-muted-foreground select-none leading-relaxed"
+            className="font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none text-gray-400 select-none leading-relaxed"
             aria-hidden="true"
           >
             {text}
@@ -87,9 +92,9 @@ export default function TypingTest() {
               const expectedChar = text[i]
               let className = ""
               if (char === expectedChar) {
-                className = "text-green-600"
+                className = "text-green-500"
               } else {
-                className = "text-red-600"
+                className = "text-red-500"
               }
               return (
                 <span key={i} className={className}>

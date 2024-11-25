@@ -1,63 +1,43 @@
 import React, { useState, useEffect } from 'react';
 
-// Limited set of colors and their keyboard mappings
 const colors = ['red', 'green', 'blue', 'yellow'];
-const colorMappings = { red: 'r', blue: 'b', green: 'g', yellow: 'y' };
+const colorMappings = { red: 'r', green: 'g', blue: 'b', yellow: 'y' };
 
-// Fixed set of 20 questions using only the specified colors
 const questions = [
   { word: 'RED', color: 'green' },
   { word: 'GREEN', color: 'blue' },
-  { word: 'BLUE', color: 'yellow' },
-  { word: 'YELLOW', color: 'red' },
-  { word: 'RED', color: 'blue' },
-  { word: 'GREEN', color: 'yellow' },
   { word: 'BLUE', color: 'red' },
-  { word: 'YELLOW', color: 'green' },
-  { word: 'RED', color: 'yellow' },
-  { word: 'GREEN', color: 'red' },
-  { word: 'BLUE', color: 'green' },
-  { word: 'YELLOW', color: 'blue' },
-  { word: 'RED', color: 'green' },
-  { word: 'GREEN', color: 'blue' },
-  { word: 'BLUE', color: 'yellow' },
-  { word: 'YELLOW', color: 'red' },
-  { word: 'RED', color: 'blue' },
-  { word: 'GREEN', color: 'yellow' },
-  { word: 'BLUE', color: 'red' },
-  { word: 'YELLOW', color: 'green' },
+  { word: 'YELLOW', color: 'yellow' },
 ];
 
-const StroopTest = () => {
+export default function StroopTest({ onTaskComplete }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [question, setQuestion] = useState(null); // Initially null, shows first question on start
   const [score, setScore] = useState(0);
-  const [startTime, setStartTime] = useState(null); // Initially null
+  const [startTime, setStartTime] = useState(null);
   const [times, setTimes] = useState([]);
   const [gameOver, setGameOver] = useState(false);
-  const [quizStarted, setQuizStarted] = useState(false); // Track whether the quiz has started
+  const [quizStarted, setQuizStarted] = useState(false);
 
   // Handle key press for color selection
   const handleKeyPress = (event) => {
-    if (gameOver || !quizStarted) return; // Do nothing if the game is over or hasn't started
+    if (gameOver || !quizStarted) return;
 
     const selectedKey = event.key.toLowerCase();
-    const correctKey = colorMappings[question.color];
+    const correctKey = colorMappings[questions[currentQuestionIndex].color];
 
     // Check if selected key matches the correct key
     if (selectedKey === correctKey) {
-      setScore(score + 1);
+      setScore((prevScore) => prevScore + 1);
     }
 
     // Record time taken for this question
     const endTime = Date.now();
-    const timeTaken = (endTime - startTime) / 1000; // in seconds
-    setTimes([...times, timeTaken]);
+    const timeTaken = (endTime - startTime) / 1000; // Time in seconds
+    setTimes((prevTimes) => [...prevTimes, timeTaken]);
 
     // Move to the next question or end the game
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setQuestion(questions[currentQuestionIndex + 1]);
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
       setStartTime(Date.now()); // Restart timer for the next question
     } else {
       setGameOver(true);
@@ -65,15 +45,29 @@ const StroopTest = () => {
   };
 
   useEffect(() => {
+    // Attach keydown listener
     window.addEventListener('keydown', handleKeyPress);
 
-    // Cleanup the event listener
+    // Cleanup listener on component unmount
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [currentQuestionIndex, question, quizStarted]);
+  }, [currentQuestionIndex, quizStarted, gameOver]);
 
-  // Display results after game ends
+  useEffect(() => {
+    if (gameOver) {
+      // Notify parent component when the game is over
+      onTaskComplete();
+    }
+  }, [gameOver, onTaskComplete]);
+
+  // Start the quiz
+  const startQuiz = () => {
+    setQuizStarted(true);
+    setStartTime(Date.now());
+  };
+
+  // Render results after the game ends
   const renderResults = () => {
     const totalTime = times.reduce((acc, time) => acc + time, 0);
     const avgTime = (totalTime / times.length).toFixed(2);
@@ -81,35 +75,15 @@ const StroopTest = () => {
 
     return (
       <div style={{ textAlign: 'center' }}>
-        {/* <h2>Game Over</h2> */}
-        <h1 style={{ fontSize: '1.5em' }}> Game Over</h1>
+        <h1 style={{ fontSize: '1.5em' }}>Game Over</h1>
         <br />
-        <p>Your final score: {score} / 20</p>
+        <p>Your final score: {score} / {questions.length}</p>
         <p>Accuracy: {accuracy}%</p>
         <p>Total Time Taken: {totalTime.toFixed(2)} seconds</p>
         <p>Average Time per Question: {avgTime} seconds</p>
         <br />
-        <button onClick={restartGame} style={{ border: '2px solid lightblue', padding: '10px 20px', borderRadius: '8px' }}>
-          Restart
-        </button>
       </div>
     );
-  };
-
-  // Start the quiz
-  const startQuiz = () => {
-    setQuizStarted(true);
-    setQuestion(questions[0]);
-    setCurrentQuestionIndex(0);
-    setStartTime(Date.now());
-  };
-
-  // Restart game function
-  const restartGame = () => {
-    setQuizStarted(false);
-    setGameOver(false);
-    setScore(0);
-    setTimes([]);
   };
 
   return (
@@ -124,9 +98,9 @@ const StroopTest = () => {
           <li style={{ color: 'yellow' }}><strong>Y</strong> for Yellow</li>
         </ul>
       </div>
-      
+
       <div style={{ textAlign: 'center' }}>
-      <h1 style={{ fontSize: '2.5em' }}>Stroop Test</h1>
+        <h1 style={{ fontSize: '2.5em' }}>Stroop Test</h1>
         {!quizStarted ? (
           <div>
             <br />
@@ -144,17 +118,15 @@ const StroopTest = () => {
             <div
               style={{
                 fontSize: '50px',
-                color: question.color,
+                color: questions[currentQuestionIndex].color,
                 margin: '20px auto',
               }}
             >
-              {question.word}
+              {questions[currentQuestionIndex].word}
             </div>
           </div>
         )}
       </div>
     </div>
   );
-};
-
-export default StroopTest;
+}
