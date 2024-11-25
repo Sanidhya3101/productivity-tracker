@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, RotateCcw } from "lucide-react";
 
-export default function TypingTest() {
+export default function TypingTest({ onTaskComplete }) {
   const [text] = useState(
     "the quick brown fox jumps over the lazy dog while the mighty lion sleeps peacefully beneath the warm summer sun and gentle breeze rustles through the tall grass creating a serene atmosphere in the wild"
   );
@@ -50,8 +50,14 @@ export default function TypingTest() {
     if (input.length === text.length) {
       setEndTime(Date.now());
       setIsActive(false);
+
+      // Notify parent component that the task is complete
+      if (onTaskComplete) {
+        onTaskComplete()
+      }
     }
-  }, [input, startTime, text]);
+  // }, [input, startTime, text]);
+}, [input, startTime, text, onTaskComplete])
 
   const reset = () => {
     setInput("");
@@ -66,9 +72,11 @@ export default function TypingTest() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8 flex items-center justify-center">
-      <Card className="w-full max-w-4xl p-10 space-y-10">
+    <div className="min-h-screen bg-black text-white p-8 flex items-center justify-center">
+    {/* <div className="min-h-screen bg-background p-8 flex items-center justify-center">
+      <Card className="w-full max-w-4xl p-10 space-y-10"> */}
         {/* Header */}
+      <Card className="w-full max-w-5xl p-10 space-y-10">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold">Typing Test</h1>
           <Button variant="outline" size="icon" onClick={reset}>
@@ -80,13 +88,14 @@ export default function TypingTest() {
         <div className="relative border rounded-md p-8">
           {/* Displayed Text */}
           <div
-            className="font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none text-muted-foreground select-none leading-relaxed"
+            className="font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none text-gray-400 select-none leading-relaxed"
             aria-hidden="true"
           >
             {text}
           </div>
           {/* User Input Overlay */}
-          <div className="absolute top-8 left-8 right-8 bottom-8 font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none leading-relaxed">
+          {/* <div className="absolute top-8 left-8 right-8 bottom-8 font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none leading-relaxed"> */}
+          <div className="absolute top-8 left-8 font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none leading-relaxed">
             {[...text].map((expectedChar, i) => {
               const char = input[i];
               let className = "";

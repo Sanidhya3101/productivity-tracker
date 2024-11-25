@@ -1,16 +1,30 @@
 import React, { useState, useEffect } from 'react';
 
-const MazeGame = () => {
+const MazeGame = ({ onTaskComplete }) => {
   const maze = [
-    [0, 1, 0, 0, 0],
-    [0, 1, 1, 1, 0],
-    [0, 0, 0, 1, 0],
-    [1, 1, 0, 1, 0],
-    [0, 0, 0, 0, 0]
+    [0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0],
+    [0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0],
+    [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0],
+    [1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0],
+    [0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+    [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+    [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   ];
 
   const startPosition = { row: 0, col: 0 };
-  const endPosition = { row: 4, col: 4 };
+  const endPosition = { row: 18, col: 19 };
 
   const [position, setPosition] = useState(startPosition);
   const [path, setPath] = useState([startPosition]);
@@ -58,6 +72,9 @@ const MazeGame = () => {
 
         if (newRow === endPosition.row && newCol === endPosition.col) {
           setGameOver(true);
+          if (onTaskComplete) {
+            onTaskComplete();
+          }
         }
       } else {
         setWrongMoves((prevWrongMoves) => prevWrongMoves + 1);
@@ -69,7 +86,15 @@ const MazeGame = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [position, gameOver]);
+  }, [position, gameOver, onTaskComplete]);
+
+  const resetGame = () => {
+    setPosition(startPosition);
+    setPath([startPosition]);
+    setWrongMoves(0);
+    setTotalMoves(0);
+    setGameOver(false);
+  };
 
   return (
     <div style={styles.container}>
@@ -80,7 +105,9 @@ const MazeGame = () => {
           <p>You reached the endpoint!</p>
           <p>Total Moves: {totalMoves}</p>
           <p>Wrong Moves: {wrongMoves}</p>
-          <p>Path Taken: {path.map((p) => `(${p.row}, ${p.col})`).join(' -> ')}</p>
+          <button style={styles.button} onClick={resetGame}>
+            Play Again
+          </button>
         </div>
       ) : (
         <div style={styles.statsContainer}>
@@ -110,7 +137,7 @@ const MazeGame = () => {
                       ? 'red'
                       : path.some((p) => p.row === rowIndex && p.col === colIndex)
                       ? 'blue'
-                      : 'black'
+                      : 'black',
                 }}
               >
                 {cellContent}
@@ -130,36 +157,45 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: '100vh',
-    backgroundColor: '#f0f4f8',
+    backgroundColor: '#000',
     fontFamily: '"Arial", sans-serif',
-    color: '#333',
-    textAlign: 'center'
+    color: '#fff',
+    textAlign: 'center',
   },
   title: {
     fontSize: '2.5em',
-    color: '#333',
-    marginBottom: '10px'
+    color: '#fff',
+    marginBottom: '10px',
   },
   statsContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#222',
     padding: '15px',
     borderRadius: '8px',
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 4px 8px rgba(255, 255, 255, 0.1)',
     marginBottom: '20px',
     width: '80%',
     maxWidth: '300px',
+    color: '#fff',
   },
   gameOverText: {
     color: '#e63946',
   },
+  button: {
+    backgroundColor: '#e63946',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+  },
   mazeContainer: {
     display: 'grid',
-    gridTemplateColumns: `repeat(5, 40px)`,
+    gridTemplateColumns: `repeat(20, 30px)`,
     gap: '4px',
   },
   cell: {
-    width: 40,
-    height: 40,
+    width: 30,
+    height: 30,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

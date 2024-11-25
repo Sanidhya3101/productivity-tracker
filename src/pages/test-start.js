@@ -1,13 +1,11 @@
-'use client'
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ScrollArea } from "@/components/ui/scroll-area"
-
-export default function TestStart({ onStart = () => {} }) {
-  const [consentGiven, setConsentGiven] = useState(false)
+export default function TestStart({ onStartFunction }) {
+  const [consentGiven, setConsentGiven] = useState(false);
 
   return (
     <div className="font-mono min-h-screen bg-background bg-black p-8 flex items-start justify-center">
@@ -21,7 +19,6 @@ export default function TestStart({ onStart = () => {} }) {
             <h3 className="text-lg font-semibold mb-2">Test Duration</h3>
             <p>The test will take approximately 30 minutes to complete.</p>
           </section>
-
           <section>
             <h3 className="text-lg font-semibold mb-2">Test Sections</h3>
             <ol className="list-decimal list-inside space-y-2">
@@ -30,7 +27,6 @@ export default function TestStart({ onStart = () => {} }) {
               <li>Creative Tasks: Demonstrate your creative thinking abilities.</li>
             </ol>
           </section>
-
           <section>
             <h3 className="text-lg font-semibold mb-2">Privacy Information</h3>
             <ScrollArea className="max-h-40 rounded border p-4">
@@ -41,10 +37,9 @@ export default function TestStart({ onStart = () => {} }) {
               </ul>
             </ScrollArea>
           </section>
-
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="consent" 
+            <Checkbox
+              id="consent"
               checked={consentGiven}
               onCheckedChange={(checked) => setConsentGiven(checked)}
             />
@@ -57,11 +52,11 @@ export default function TestStart({ onStart = () => {} }) {
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="mx-auto" disabled={!consentGiven} onClick={onStart}>
+          <Button className="mx-auto" disabled={!consentGiven} onClick={onStartFunction}>
             Start Test
           </Button>
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
