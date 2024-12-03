@@ -30,7 +30,48 @@ const MazeGame = ({ onTaskComplete }) => {
   const [path, setPath] = useState([startPosition]);
   const [wrongMoves, setWrongMoves] = useState(0);
   const [totalMoves, setTotalMoves] = useState(0);
+  const [startTime, setStartTime] = useState(Date.now());
+  const [endTime, setEndTime] = useState(null);
   const [gameOver, setGameOver] = useState(false);
+
+  const submitStatistics = async () => {
+    if (!endTime) return; // Wait until endTime is set
+
+    const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+
+    const data = {
+      timeTaken: parseFloat(timeTaken),
+      totalMoves,
+      wrongMoves,
+    };
+
+    try {
+      const response = await fetch('/api/save-maze-runner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      console.log('Maze game data saved successfully');
+
+      // Proceed to the next task
+      if (onTaskComplete) {
+        onTaskComplete();
+      }
+    } catch (error) {
+      console.error('Error saving maze game data:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (endTime) {
+      submitStatistics(); // Trigger submission after endTime is set
+    }
+  }, [endTime]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -84,10 +125,11 @@ const MazeGame = ({ onTaskComplete }) => {
         setPosition(newPosition);
 
         if (newRow === endPosition.row && newCol === endPosition.col) {
+          setEndTime(Date.now());
           setGameOver(true);
-          if (onTaskComplete) {
-            onTaskComplete();
-          }
+          
+          // Submit statistics before proceeding
+          submitStatistics();
         }
       } else {
         setWrongMoves((prevWrongMoves) => prevWrongMoves + 1);
@@ -106,6 +148,8 @@ const MazeGame = ({ onTaskComplete }) => {
     setPath([startPosition]);
     setWrongMoves(0);
     setTotalMoves(0);
+    setStartTime(Date.now());
+    setEndTime(null);
     setGameOver(false);
   };
 

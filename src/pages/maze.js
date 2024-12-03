@@ -1,4 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const maze = [
   ["D", "V", "D", "C", "A", "S", "V", "T", "J", "N", "N", "U", "L", "D", "I", "Y", "H", "Y"],
@@ -21,15 +29,17 @@ const wordsToFind = [
   "HUMAN", "MONEY", "NICHE", "MOUSE", "USER", "DATA", "TEXT"
 ];
 
-function App() {
+function WordMaze({ onTaskComplete }) {
   const [selectedCells, setSelectedCells] = useState([]);
   const [foundWords, setFoundWords] = useState([]);
   const [timer, setTimer] = useState(0);
   const [isTimerActive, setIsTimerActive] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(true);
 
   // Start the timer when the start button is clicked
   const startTimer = () => {
     setIsTimerActive(true);
+    setIsDialogOpen(false);
   };
 
   // Update the timer every second
@@ -45,10 +55,37 @@ function App() {
     return () => clearInterval(interval);
   }, [isTimerActive]);
 
+  const submitResults = async (totalTime, foundWordsList) => {
+    const data = { totalTime, foundWords: foundWordsList };
+
+    try {
+      const response = await fetch('/api/save-word-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      console.log('Word search data saved successfully');
+
+      if (onTaskComplete) {
+        onTaskComplete();
+      }
+    } catch (error) {
+      console.error('Error saving word search data:', error);
+    }
+  };
+
   // Stop the timer when all words have been found
   useEffect(() => {
     if (foundWords.length === wordsToFind.length) {
       setIsTimerActive(false);
+
+      // Submit the results
+      submitResults(timer, foundWords.map(({ word }) => word));
     }
   }, [foundWords]);
 
@@ -106,13 +143,19 @@ function App() {
 
   return (
     <div className="flex flex-col items-center">
+      <Dialog open={isDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Welcome to Word Search</DialogTitle>
+            <DialogDescription>
+              <p>Select letters to form words by clicking on adjacent cells.</p>
+              <p>Words can be horizontal, vertical, or diagonal, but only from top to bottom.</p>
+            </DialogDescription>
+            <Button onClick={startTimer} className="mt-4">Start Quiz</Button>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
       <div className="flex justify-between items-center w-full mb-4 p-2">
-        <button
-          onClick={startTimer}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
-        >
-          Start
-        </button>
         <div className="text-xl font-bold">
           Time: {timer}s
         </div>
@@ -163,4 +206,4 @@ function App() {
   );
 }
 
-export default App;
+export default WordMaze;

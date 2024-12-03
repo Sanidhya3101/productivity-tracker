@@ -4,13 +4,19 @@ import StroopTest from './stroop';
 import TypingTest from './typing-test';
 import MazeGame from './mazeRunner';
 import PuzzleGame from './puzzles';
+import Mail from './mail';
+import Questionnaire from './questionnaire';
+import WordMaze from './maze';
 
 const TASKS = {
   TEST_START: 'TestStart',
   STROOP_TEST: 'StroopTest',
   TYPING_TEST: 'TypingTest',
+  WORD_MAZE: 'WordMaze',
   MAZE_GAME: 'MazeGame',
   PUZZLE_GAME: 'PuzzleGame', // Added PuzzleGame to the task list
+  CREATIVE_TASK: 'Mail',
+  SURVEY: 'Questionnaire',
 };
 
 export default function Home() {
@@ -33,10 +39,16 @@ export default function Home() {
     } else if (currentTask === TASKS.STROOP_TEST) {
       setCurrentTask(TASKS.TYPING_TEST);
     } else if (currentTask === TASKS.TYPING_TEST) {
+      setCurrentTask(TASKS.WORD_MAZE);
+    } else if (currentTask === TASKS.WORD_MAZE) {
       setCurrentTask(TASKS.MAZE_GAME);
     } else if (currentTask === TASKS.MAZE_GAME) {
       setCurrentTask(TASKS.PUZZLE_GAME);
     } else if (currentTask === TASKS.PUZZLE_GAME) {
+      setCurrentTask(TASKS.CREATIVE_TASK);
+    } else if (currentTask === TASKS.CREATIVE_TASK) {
+      setCurrentTask(TASKS.SURVEY);
+    } else if (currentTask === TASKS.SURVEY) {
       setEndTime(Date.now());
       console.log('All tasks completed!');
     }
@@ -65,10 +77,16 @@ export default function Home() {
         return <StroopTest onTaskComplete={handleTaskCompletion} />;
       case TASKS.TYPING_TEST:
         return <TypingTest onTaskComplete={handleTaskCompletion} />;
+      case TASKS.WORD_MAZE:
+        return <WordMaze onTaskComplete={handleTaskCompletion} />;
       case TASKS.MAZE_GAME:
         return <MazeGame onTaskComplete={handleTaskCompletion} />;
       case TASKS.PUZZLE_GAME:
         return <PuzzleGame onTaskComplete={handleTaskCompletion} />;
+      case TASKS.CREATIVE_TASK:
+        return <Mail onTaskComplete={handleTaskCompletion} />;
+      case TASKS.SURVEY:
+        return <Questionnaire onTaskComplete={handleTaskCompletion} />;
       default:
         return (
           <div className="text-center">

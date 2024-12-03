@@ -17,6 +17,7 @@ export default function StroopTest({ onTaskComplete }) {
   const [score, setScore] = useState(0);
   const [startTime, setStartTime] = useState(null);
   const [times, setTimes] = useState([]);
+  const [responses, setResponses] = useState([]);
   const [gameOver, setGameOver] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
 
@@ -32,6 +33,20 @@ export default function StroopTest({ onTaskComplete }) {
 
     const endTime = Date.now();
     const timeTaken = (endTime - startTime) / 1000;
+
+    // Record response
+    setResponses((prevResponses) => [
+      ...prevResponses,
+      {
+        questionId: currentQuestionIndex + 1,
+        word: questions[currentQuestionIndex].word,
+        color: questions[currentQuestionIndex].color,
+        keyPressed: selectedKey,
+        timeTaken: timeTaken.toFixed(2),
+        isCorrect: selectedKey === correctKey,
+      },
+    ]);
+
     setTimes((prevTimes) => [...prevTimes, timeTaken]);
 
     if (currentQuestionIndex < questions.length - 1) {
@@ -42,6 +57,35 @@ export default function StroopTest({ onTaskComplete }) {
     }
   };
 
+  const submitResults = async () => {
+    try {
+      const response = await fetch('/api/save-stroop-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ results: responses }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      console.log('Stroop test data saved successfully');
+
+      // Notify parent component
+      if (onTaskComplete) {
+        onTaskComplete();
+      }
+    } catch (error) {
+      console.error('Error saving Stroop test data:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (gameOver) {
+      submitResults();
+    }
+  }, [gameOver]);
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
     return () => {
@@ -49,11 +93,11 @@ export default function StroopTest({ onTaskComplete }) {
     };
   }, [currentQuestionIndex, quizStarted, gameOver]);
 
-  useEffect(() => {
-    if (gameOver) {
-      onTaskComplete();
-    }
-  }, [gameOver, onTaskComplete]);
+  // useEffect(() => {
+  //   if (gameOver) {
+  //     onTaskComplete();
+  //   }
+  // }, [gameOver, onTaskComplete]);
 
   const startQuiz = () => {
     setQuizStarted(true);

@@ -18,14 +18,55 @@ export default function TypingTest({ onTaskComplete }) {
   const words = text.trim().split(/\s+/).length;
 
   const accuracy = endTime
-    ? (((input.length - totalErrors) / input.length) * 100).toFixed(1)
+    ? (((text.length - totalErrors) / input.length) * 100).toFixed(1)
     : null;
 
   const wpm = endTime
     ? Math.round(
-        input.trim().split(/\s+/).length / ((endTime - startTime) / 1000 / 60)
+        text.trim().split(/\s+/).length / (((endTime - startTime) / 1000) / 60)
       )
     : null;
+
+  // Function to submit statistics to the server
+  const submitStatistics = async () => {
+    const data = {
+      wpm,
+      accuracy,
+      totalErrors,
+      timeTaken: ((endTime - startTime) / 1000).toFixed(1),
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      const response = await fetch('/api/save-typing-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      // Check if the response is OK
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      console.log('Typing test statistics saved successfully');
+
+      // Proceed to the next task
+      if (onTaskComplete) {
+        onTaskComplete();
+      }
+    } catch (error) {
+      console.error('Error saving statistics:', error);
+      // Optionally handle the error (e.g., show a message to the user)
+    }
+  };
+
+  // Trigger statistics submission after `endTime` is set
+  useEffect(() => {
+    if (endTime) {
+      submitStatistics();
+    }
+  }, [endTime]);
 
   useEffect(() => {
     if (input.length === 1 && !startTime) {
@@ -51,13 +92,8 @@ export default function TypingTest({ onTaskComplete }) {
       setEndTime(Date.now());
       setIsActive(false);
 
-      // Notify parent component that the task is complete
-      if (onTaskComplete) {
-        onTaskComplete()
-      }
     }
-  // }, [input, startTime, text]);
-}, [input, startTime, text, onTaskComplete])
+  }, [input, startTime, text]);
 
   const reset = () => {
     setInput("");

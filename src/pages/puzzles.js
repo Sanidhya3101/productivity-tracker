@@ -60,6 +60,8 @@ export default function PuzzleGame({ onTaskComplete }) {
   const [currentPuzzle, setCurrentPuzzle] = useState(0);
   const [timeLeft, setTimeLeft] = useState(120); // 2 minutes in seconds
   const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [puzzleResponses, setPuzzleResponses] = useState([]);
+  const [startTime, setStartTime] = useState(Date.now());
   const [unansweredQuestions, setUnansweredQuestions] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
@@ -77,11 +79,38 @@ export default function PuzzleGame({ onTaskComplete }) {
 
   const startQuiz = () => {
     setIsStarted(true);
+    setStartTime(Date.now());
   };
 
-  const endQuiz = () => {
+  const submitResponses = async (data) => {
+    try {
+      const response = await fetch('/api/save-puzzle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ puzzleData: data }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      console.log('Puzzle data saved successfully');
+    } catch (error) {
+      console.error('Error saving puzzle data:', error);
+    }
+  };
+
+  const endQuiz = async () => {
     setIsFinished(true);
     setUnansweredQuestions(puzzles.length - currentPuzzle - 1);
+
+    const elapsedTimes = puzzleResponses.map((response) => ({
+      ...response,
+      timeTaken: ((Date.now() - response.startTime) / 1000).toFixed(2),
+    }));
+
+    // Save responses to the server
+    await submitResponses(elapsedTimes);
 
     // Notify parent when quiz ends
     if (onTaskComplete) {
@@ -90,11 +119,21 @@ export default function PuzzleGame({ onTaskComplete }) {
   };
 
   const handleAnswer = (selectedAnswer) => {
+    const responseTime = Date.now();
+    const currentPuzzleData = {
+      puzzleId: puzzles[currentPuzzle].id,
+      response: puzzles[currentPuzzle].options[selectedAnswer],
+      startTime,
+    };
+
+    setPuzzleResponses((prev) => [...prev, currentPuzzleData]);
+
     if (selectedAnswer === puzzles[currentPuzzle].correctAnswer) {
       setCorrectAnswers((prev) => prev + 1);
     }
     if (currentPuzzle < puzzles.length - 1) {
       setCurrentPuzzle((prev) => prev + 1);
+      setStartTime(responseTime);
     } else {
       endQuiz();
     }

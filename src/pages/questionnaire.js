@@ -25,14 +25,33 @@ export default function Questionnaire({ onComplete = () => {} }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [noAnswered, setNoAnswered] = useState(0)
 
+  const submitResponses = async () => {
+    try {
+      const response = await fetch('/api/save-questionnaire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ responses }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      console.log('Responses saved successfully');
+    } catch (error) {
+      console.error('Error saving responses:', error);
+    }
+  };
+
   const handleResponse = (questionId, value) => {
     setResponses(prev => ({ ...prev, [questionId]: value }))
     setNoAnswered(noAnswered+1)
   }
 
   const handleSubmit = () => {
-    setIsDialogOpen(true)
-  }
+    submitResponses();
+    setIsDialogOpen(true);
+  };
 
   const closeDialog = () => {
     setIsDialogOpen(false)
