@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     const csvWriter = createObjectCsvWriter({
       path: csvFilePath,
       header: [
-        { id: 'timestamp', title: 'Timestamp' },
+        // { id: 'timestamp', title: 'Timestamp' },
         { id: 'questionId', title: 'Question ID' },
         { id: 'responseValue', title: 'Response Value' },
       ],
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
     try {
       const records = Object.entries(responses).map(([questionId, responseValue]) => ({
-        timestamp: new Date().toISOString(),
+        // timestamp: new Date().toISOString(),
         questionId,
         responseValue,
       }));

@@ -34,22 +34,20 @@ const MazeGame = ({ onTaskComplete }) => {
   const [endTime, setEndTime] = useState(null);
   const [gameOver, setGameOver] = useState(false);
 
+  // New states for per-move recording
+  const [movesData, setMovesData] = useState([]);
+  const [moveNumber, setMoveNumber] = useState(0);
+  const [lastMoveTime, setLastMoveTime] = useState(Date.now());
+
   const submitStatistics = async () => {
-    if (!endTime) return; // Wait until endTime is set
+    if (!endTime) return; 
 
-    const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
-
-    const data = {
-      timeTaken: parseFloat(timeTaken),
-      totalMoves,
-      wrongMoves,
-    };
-
+    // Send moves data to the server
     try {
       const response = await fetch('/api/save-maze-runner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ moves: movesData }),
       });
 
       if (!response.ok) {
@@ -77,6 +75,8 @@ const MazeGame = ({ onTaskComplete }) => {
     const handleKeyDown = (event) => {
       if (gameOver) return;
 
+      const now = Date.now();
+      const moveTimeTaken = (now - lastMoveTime) / 1000; // time in seconds since last move
       const { row, col } = position;
       let newRow = row;
       let newCol = col;
@@ -99,6 +99,7 @@ const MazeGame = ({ onTaskComplete }) => {
       }
 
       setTotalMoves((prevMoves) => prevMoves + 1);
+      let moveIsWrong = false;
 
       if (
         newRow >= 0 &&
@@ -109,30 +110,53 @@ const MazeGame = ({ onTaskComplete }) => {
       ) {
         const newPosition = { row: newRow, col: newCol };
 
-        // Check if the new position is the previous position in the path (backtracking)
+        // Check if we're backtracking to the previous cell
         if (
           path.length > 1 &&
           path[path.length - 2].row === newRow &&
           path[path.length - 2].col === newCol
         ) {
-          // Backtracking: remove the last position
+          // Backtracking
           setPath((prevPath) => prevPath.slice(0, prevPath.length - 1));
         } else {
-          // Moving forward: add new position to the path
+          // Moving forward
           setPath((prevPath) => [...prevPath, newPosition]);
         }
 
         setPosition(newPosition);
 
+        // Record this move
+        setMovesData((prev) => [
+          ...prev,
+          {
+            moveNumber: moveNumber + 1,
+            wrongMove: false,
+            timeTakenForMove: moveTimeTaken,
+          },
+        ]);
+        setMoveNumber(moveNumber + 1);
+        setLastMoveTime(now);
+
         if (newRow === endPosition.row && newCol === endPosition.col) {
           setEndTime(Date.now());
           setGameOver(true);
-          
-          // Submit statistics before proceeding
+          // Submit the moves data
           submitStatistics();
         }
       } else {
+        moveIsWrong = true;
         setWrongMoves((prevWrongMoves) => prevWrongMoves + 1);
+        // Record wrong move
+        setMovesData((prev) => [
+          ...prev,
+          {
+            moveNumber: moveNumber + 1,
+            wrongMove: true,
+            timeTakenForMove: moveTimeTaken,
+          },
+        ]);
+        setMoveNumber(moveNumber + 1);
+        setLastMoveTime(now);
       }
     };
 
@@ -141,7 +165,7 @@ const MazeGame = ({ onTaskComplete }) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [position, gameOver, path, onTaskComplete]);
+  }, [position, gameOver, path, moveNumber, lastMoveTime, onTaskComplete]);
 
   const resetGame = () => {
     setPosition(startPosition);
@@ -150,6 +174,9 @@ const MazeGame = ({ onTaskComplete }) => {
     setTotalMoves(0);
     setStartTime(Date.now());
     setEndTime(null);
+    setMovesData([]);
+    setMoveNumber(0);
+    setLastMoveTime(Date.now());
     setGameOver(false);
   };
 
@@ -159,29 +186,10 @@ const MazeGame = ({ onTaskComplete }) => {
         <div className="w-full max-w-5xl rounded-3xl border-solid border-4 border-black p-4">
           <header className="text-center">
             <h1 className="text-4xl font-bold mb-2 text-gradient">Maze Game</h1>
-            <p className="text-xl text-red-500 italic">Navigate through the maze using the four arrow keys.</p>
+            <p className="text-xl text-red-500 italic">Navigate using the arrow keys.</p>
           </header>
 
           <main className="mt-1">
-            {/* {gameOver ? (
-              <div className="text-center">
-                <h2 className="text-3xl font-bold mb-4 text-green-500">Game Over!</h2>
-                <p className="text-2xl mb-2">You reached the endpoint!</p>
-                <p className="text-2xl mb-2">Total Moves: {totalMoves}</p>
-                <p className="text-2xl mb-4">Wrong Moves: {wrongMoves}</p>
-                <Button onClick={resetGame} className="w-32 py-6 text-lg">
-                  Play Again
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center mb-4">
-                <p className="text-xl mb-2">Position: Row {position.row}, Col {position.col}</p>
-                <p className="text-xl mb-2">Total Moves: {totalMoves}</p>
-                <p className="text-xl mb-2">Wrong Moves: {wrongMoves}</p>
-                <p className="text-xl font-bold">Use arrow keys to move through the maze.</p>
-              </div>
-            )} */}
-
             <div 
               className="grid gap-1 mx-auto bg-slate-700 p-4 rounded-lg border-2 border-white" 
               style={{ 

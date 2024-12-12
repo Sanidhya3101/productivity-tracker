@@ -47,7 +47,7 @@ export default function Mail({ onTaskComplete }) {
 
   // Email question
   const question =
-    'Write a concise and professional email to your manager requesting a leave application. Your submission will be evaluated on creativity, tone, formatting, and overall communication effectiveness.';
+    'Write a concise and professional email to your manager requesting a leave application while clearly specifying your reason for doing so. Your submission will be evaluated on creativity, tone, formatting, and overall communication effectiveness.';
 
   // Handle Start button click
   const handleStart = () => {
@@ -239,14 +239,24 @@ export default function Mail({ onTaskComplete }) {
                 <strong>Solve the puzzle below within 2 minutes to continue your task.</strong>
               </p>
               <div className="flex flex-col items-center">
-                <Image
+                {/* <Image
                   src={puzzle.image}
                   alt={`Puzzle ${puzzle.id}`}
                   width={300}
                   height={200}
                   className="mb-4"
-                />
-                <div className="grid grid-cols-2 gap-4">
+                /> */}
+                <div className="w-full max-w-md">
+                  <Image
+                    src={puzzle.image}
+                    alt={`Puzzle ${puzzle.id}`}
+                    width={500} // Increased width
+                    height={300} // Increased height
+                    className="mb-6 rounded-lg object-contain" // Added rounded corners and object-fit
+                  />
+                </div>
+                {/* <div className="grid grid-cols-2 gap-4"> */}
+                <div className="w-full max-w-md grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {puzzle.options.map((option, index) => (
                     <Button
                       key={index}

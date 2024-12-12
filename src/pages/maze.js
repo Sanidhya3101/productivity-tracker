@@ -27,8 +27,14 @@ const maze = [
   ["O", "T", "M", "O", "U", "S", "E", "N", "V", "E", "R", "T", "I", "C", "A", "L", "F", "F"]
 ];
 
+// const wordsToFind = [
+//   "MOUSE", "USER"
+// ];
+
 const wordsToFind = [
-  "MOUSE", "USER"
+  "INTERACTION", "TECHNOLOGY", "HORIZONTAL",
+  "DIRECTION", "VERTICAL", "FEATURES", "KEYBOARD",  "MARBLE",
+  "HUMAN", "MONEY", "NICHE", "MOUSE", "USER", "DATA", "TEXT"
 ];
 
 function WordMaze({ onTaskComplete }) {

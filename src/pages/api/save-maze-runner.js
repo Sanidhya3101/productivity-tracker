@@ -4,15 +4,19 @@ import path from 'path';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { timeTaken, totalMoves, wrongMoves } = req.body;
+    const { moves } = req.body;
 
     // Validate input data
-    if (
-      typeof timeTaken !== 'number' ||
-      typeof totalMoves !== 'number' ||
-      typeof wrongMoves !== 'number'
-    ) {
+    if (!Array.isArray(moves)) {
       return res.status(400).json({ error: 'Invalid data format' });
+    }
+
+    for (const move of moves) {
+      if (typeof move.moveNumber !== 'number' ||
+          typeof move.wrongMove !== 'boolean' ||
+          typeof move.timeTakenForMove !== 'number') {
+        return res.status(400).json({ error: 'Invalid move data format' });
+      }
     }
 
     const csvDirectory = path.join(process.cwd(), 'csv');
@@ -26,23 +30,23 @@ export default async function handler(req, res) {
     const csvWriter = createObjectCsvWriter({
       path: csvFilePath,
       header: [
-        { id: 'timestamp', title: 'Timestamp' },
-        { id: 'timeTaken', title: 'Time Taken (s)' },
-        { id: 'totalMoves', title: 'Total Moves' },
-        { id: 'wrongMoves', title: 'Wrong Moves' },
+        // { id: 'timestamp', title: 'Timestamp' },
+        { id: 'moveNumber', title: 'Move Number' },
+        { id: 'wrongMove', title: 'Wrong Move' },
+        { id: 'timeTakenForMove', title: 'Time Taken For Move (s)' },
       ],
-      append: fs.existsSync(csvFilePath), // Append to the file if it exists
+      append: fs.existsSync(csvFilePath), // Append if file exists
     });
 
     try {
-      const record = {
-        timestamp: new Date().toISOString(),
-        timeTaken,
-        totalMoves,
-        wrongMoves,
-      };
+      const records = moves.map(move => ({
+        // timestamp: new Date().toISOString(),
+        moveNumber: move.moveNumber,
+        wrongMove: move.wrongMove,
+        timeTakenForMove: move.timeTakenForMove,
+      }));
 
-      await csvWriter.writeRecords([record]);
+      await csvWriter.writeRecords(records);
       res.status(200).json({ message: 'Data saved successfully' });
     } catch (error) {
       console.error('Error writing to CSV file:', error);

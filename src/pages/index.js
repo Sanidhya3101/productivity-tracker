@@ -11,30 +11,30 @@ import Questionnaire from './questionnaire';
 import WordMaze from './maze';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from 'axios';
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+// import { FFmpeg } from '@ffmpeg/ffmpeg';
+// import { fetchFile } from '@ffmpeg/util';
 
-const ffmpeg = createFFmpeg({ log: true });
+// // Function to convert WebM to MP4
+// const convertWebMtoMP4 = async (blob) => {
+//   // if (!ffmpeg.isLoaded()) {
+//   //   await ffmpeg.load();
+//   // }
+//   await ffmpeg.load();
 
-// Function to convert WebM to MP4
-const convertWebMtoMP4 = async (blob) => {
-  if (!ffmpeg.isLoaded()) {
-    await ffmpeg.load();
-  }
+//   // Write the WebM file to FFmpeg's virtual filesystem
+//   ffmpeg.FS('writeFile', 'recording.webm', await fetchFile(blob));
 
-  // Write the WebM file to FFmpeg's virtual filesystem
-  ffmpeg.FS('writeFile', 'recording.webm', await fetchFile(blob));
+//   // Run the conversion command
+//   await ffmpeg.run('-i', 'recording.webm', 'recording.mp4');
 
-  // Run the conversion command
-  await ffmpeg.run('-i', 'recording.webm', 'recording.mp4');
+//   // Read the MP4 file from FFmpeg's virtual filesystem
+//   const data = ffmpeg.FS('readFile', 'recording.mp4');
 
-  // Read the MP4 file from FFmpeg's virtual filesystem
-  const data = ffmpeg.FS('readFile', 'recording.mp4');
+//   // Create a Blob from the MP4 data
+//   const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
 
-  // Create a Blob from the MP4 data
-  const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
-
-  return mp4Blob;
-};
+//   return mp4Blob;
+// };
 
 const TASKS = {
   TEST_START: 'TestStart',
@@ -55,6 +55,29 @@ export default function Home() {
   const mediaRecorderRef = useRef(null);
   const mediaStreamRef = useRef(null);
   const recordedChunksRef = useRef([]);
+
+  // const ffmpeg = useRef(null);
+
+  // useEffect(() => {
+  //   const loadFFmpeg = async () => {
+  //     const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+  //     ffmpeg.current = new FFmpeg({ log: true });
+  //     await ffmpeg.current.load();
+  //   };
+  //   loadFFmpeg();
+  // }, []);
+
+  // const convertWebMtoMP4 = async (blob) => {
+  //   if (!ffmpeg.current) {
+  //     throw new Error('FFmpeg is not loaded');
+  //   }
+  
+  //   ffmpeg.current.FS('writeFile', 'recording.webm', await fetchFile(blob));
+  //   await ffmpeg.current.run('-i', 'recording.webm', 'recording.mp4');
+  //   const data = ffmpeg.current.FS('readFile', 'recording.mp4');
+  //   const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+  //   return mp4Blob;
+  // };
 
   // Start the timer at the beginning of the first task
   useEffect(() => {
@@ -172,19 +195,28 @@ export default function Home() {
           // Reset recorded chunks
           recordedChunksRef.current = [];
 
-          try {
-            // Convert WebM to MP4
-            const mp4Blob = await convertWebMtoMP4(webmBlob);
+          // try {
+          //   // Convert WebM to MP4
+          //   const mp4Blob = await convertWebMtoMP4(webmBlob);
 
+          //   // Trigger download for WebM
+          //   downloadBlob(webmBlob, 'recording.webm');
+
+          //   // Trigger download for MP4
+          //   downloadBlob(mp4Blob, 'recording.mp4');
+
+          //   console.log('Video downloaded successfully in both WebM and MP4 formats.');
+          // } catch (error) {
+          //   console.error('Error during video conversion:', error);
+          // }
+
+          try {
             // Trigger download for WebM
             downloadBlob(webmBlob, 'recording.webm');
 
-            // Trigger download for MP4
-            downloadBlob(mp4Blob, 'recording.mp4');
-
-            console.log('Video downloaded successfully in both WebM and MP4 formats.');
+            console.log('Video downloaded successfully in WebM format.');
           } catch (error) {
-            console.error('Error during video conversion:', error);
+            console.error('Error during video download:', error);
           }
 
           // Alternatively, upload the blob to the server

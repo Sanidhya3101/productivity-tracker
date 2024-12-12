@@ -5,8 +5,9 @@ import { Clock, RotateCcw } from "lucide-react";
 
 export default function TypingTest({ onTaskComplete }) {
   const [text] = useState(
-    "the quick brown fox jumps over the lazy dog while the mighty lion sleeps peacefully beneath the warm summer sun and gentle breeze rustles through the tall grass creating a serene atmosphere in the wild"
+    "The quick brown fox jumps over the lazy dog. Meanwhile, the Mighty Lion sleeps peacefully beneath the warm summer sun, and a gentle breeze rustles through the tall grass. Birds chirp melodiously, while colorful butterflies dance gracefully in the air, adding life to the serene atmosphere of the wild. In the distance, a sparkling river flows calmly, reflecting the vibrant colors of the surrounding nature."
   );
+
   const [input, setInput] = useState("");
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
@@ -34,7 +35,7 @@ export default function TypingTest({ onTaskComplete }) {
       accuracy,
       totalErrors,
       timeTaken: ((endTime - startTime) / 1000).toFixed(1),
-      timestamp: new Date().toISOString(),
+      // timestamp: new Date().toISOString(),
     };
 
     try {

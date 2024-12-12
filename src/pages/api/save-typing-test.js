@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const csvWriter = createObjectCsvWriter({
       path: csvFilePath,
       header: [
-        { id: 'timestamp', title: 'Timestamp' },
+        // { id: 'timestamp', title: 'Timestamp' },
         { id: 'wpm', title: 'WPM' },
         { id: 'accuracy', title: 'Accuracy (%)' },
         { id: 'totalErrors', title: 'Total Errors' },
