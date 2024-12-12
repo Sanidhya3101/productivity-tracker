@@ -108,7 +108,7 @@ export default function TypingTest({ onTaskComplete }) {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 flex items-center justify-center">
+    <div className="min-h-screen bg-slate-800 text-white p-8 flex items-center justify-center">
     {/* <div className="min-h-screen bg-background p-8 flex items-center justify-center">
       <Card className="w-full max-w-4xl p-10 space-y-10"> */}
         {/* Header */}
@@ -185,7 +185,7 @@ export default function TypingTest({ onTaskComplete }) {
         </div>
 
         {/* Statistics */}
-        <div className="flex flex-col md:flex-row justify-between items-center">
+        {/* <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-3 mb-4 md:mb-0">
             <Clock className="h-6 w-6" />
             <span className="text-2xl font-bold">
@@ -211,7 +211,7 @@ export default function TypingTest({ onTaskComplete }) {
               </div>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Progress Bar */}
         <div className="h-3 bg-primary/20 rounded-full overflow-hidden">

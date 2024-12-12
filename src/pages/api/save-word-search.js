@@ -1,13 +1,17 @@
+// pages/api/save-word-search.js
+
 import { createObjectCsvWriter } from 'csv-writer';
 import fs from 'fs';
 import path from 'path';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { totalTime, foundWords } = req.body;
+    const { foundWords, retention_time } = req.body;
 
     // Validate input data
-    if (typeof totalTime !== 'number' || !Array.isArray(foundWords)) {
+    if (
+      !Array.isArray(foundWords)
+    ) {
       return res.status(400).json({ error: 'Invalid data format' });
     }
 
@@ -22,21 +26,24 @@ export default async function handler(req, res) {
     const csvWriter = createObjectCsvWriter({
       path: csvFilePath,
       header: [
-        { id: 'timestamp', title: 'Timestamp' },
-        { id: 'totalTime', title: 'Total Time (s)' },
-        { id: 'foundWords', title: 'Found Words' },
+        // { id: 'timestamp', title: 'Timestamp' },
+        { id: 'word', title: 'Word' },
+        { id: 'timeTaken', title: 'Time Taken (s)' },
+        { id: 'retention_time', title: 'Retention Time (s)' },
       ],
       append: fs.existsSync(csvFilePath), // Append to the file if it exists
     });
 
-    try {
-      const record = {
-        timestamp: new Date().toISOString(),
-        totalTime,
-        foundWords: foundWords.join(', '), // Convert array to a comma-separated string
-      };
+    // Prepare records
+    const records = foundWords.map((wordObj) => ({
+      // timestamp: new Date().toISOString(),
+      word: wordObj.word,
+      timeTaken: parseFloat(wordObj.timeTaken),
+      retention_time: wordObj.retention_time ? parseFloat(wordObj.retention_time) : '',
+    }));
 
-      await csvWriter.writeRecords([record]);
+    try {
+      await csvWriter.writeRecords(records);
       res.status(200).json({ message: 'Data saved successfully' });
     } catch (error) {
       console.error('Error writing to CSV file:', error);

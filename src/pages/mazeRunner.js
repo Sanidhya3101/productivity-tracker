@@ -154,119 +154,81 @@ const MazeGame = ({ onTaskComplete }) => {
   };
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Maze Game</h1>
-      {gameOver ? (
-        <div style={styles.statsContainer}>
-          <h2 style={styles.gameOverText}>Game Over!</h2>
-          <p>You reached the endpoint!</p>
-          <p>Total Moves: {totalMoves}</p>
-          <p>Wrong Moves: {wrongMoves}</p>
-          <button style={styles.button} onClick={resetGame}>
-            Play Again
-          </button>
-        </div>
-      ) : (
-        <div style={styles.statsContainer}>
-          <p>
-            Position: Row {position.row}, Col {position.col}
-          </p>
-          <p>Total Moves: {totalMoves}</p>
-          <p>Wrong Moves: {wrongMoves}</p>
-          <p>Use arrow keys to move through the maze.</p>
-        </div>
-      )}
-      <div style={styles.mazeContainer}>
-        {maze.map((row, rowIndex) =>
-          row.map((cell, colIndex) => {
-            let cellContent = '';
-            if (position.row === rowIndex && position.col === colIndex) {
-              cellContent = 'P';
-            } else if (rowIndex === endPosition.row && colIndex === endPosition.col) {
-              cellContent = 'E';
-            }
+    <div className="min-h-screen bg-slate-800 text-white flex flex-col items-center justify-center p-4">
+      <div className="font-sans rounded-3xl bg-background text-foreground p-8 flex items-center justify-center">
+        <div className="w-full max-w-5xl rounded-3xl border-solid border-4 border-black p-4">
+          <header className="text-center">
+            <h1 className="text-4xl font-bold mb-2 text-gradient">Maze Game</h1>
+            <p className="text-xl text-red-500 italic">Navigate through the maze using arrow keys.</p>
+          </header>
 
-            // Determine if the cell is part of the current path
-            const isInPath = path.some(
-              (p) => p.row === rowIndex && p.col === colIndex
-            );
-
-            return (
-              <div
-                key={`${rowIndex}-${colIndex}`}
-                style={{
-                  ...styles.cell,
-                  backgroundColor: cell === 1 ? '#444' : isInPath ? '#0f0' : '#fff',
-                  color:
-                    position.row === rowIndex && position.col === colIndex
-                      ? 'red'
-                      : 'black',
-                }}
-              >
-                {cellContent}
+          <main className="mt-1">
+            {/* {gameOver ? (
+              <div className="text-center">
+                <h2 className="text-3xl font-bold mb-4 text-green-500">Game Over!</h2>
+                <p className="text-2xl mb-2">You reached the endpoint!</p>
+                <p className="text-2xl mb-2">Total Moves: {totalMoves}</p>
+                <p className="text-2xl mb-4">Wrong Moves: {wrongMoves}</p>
+                <Button onClick={resetGame} className="w-32 py-6 text-lg">
+                  Play Again
+                </Button>
               </div>
-            );
-          })
-        )}
+            ) : (
+              <div className="text-center mb-4">
+                <p className="text-xl mb-2">Position: Row {position.row}, Col {position.col}</p>
+                <p className="text-xl mb-2">Total Moves: {totalMoves}</p>
+                <p className="text-xl mb-2">Wrong Moves: {wrongMoves}</p>
+                <p className="text-xl font-bold">Use arrow keys to move through the maze.</p>
+              </div>
+            )} */}
+
+            <div 
+              className="grid gap-1 mx-auto bg-slate-700 p-4 rounded-lg border-2 border-white" 
+              style={{ 
+                gridTemplateColumns: `repeat(20, minmax(0, 1fr))`,
+                maxWidth: "90vw",
+                aspectRatio: "1/1",
+              }}
+            >
+              {maze.map((row, rowIndex) =>
+                row.map((cell, colIndex) => {
+                  let cellContent = '';
+                  if (position.row === rowIndex && position.col === colIndex) {
+                    cellContent = 'S';
+                  } else if (rowIndex === endPosition.row && colIndex === endPosition.col) {
+                    cellContent = 'E';
+                  }
+
+                  const isInPath = path.some(
+                    (p) => p.row === rowIndex && p.col === colIndex
+                  );
+
+                  return (
+                    <div
+                      key={`${rowIndex}-${colIndex}`}
+                      className={`flex items-center justify-center text-lg font-bold rounded aspect-square ${
+                        cell === 1 
+                          ? 'bg-slate-900' 
+                          : isInPath 
+                            ? 'bg-blue-500' 
+                            : 'bg-slate-600'
+                      } ${
+                        position.row === rowIndex && position.col === colIndex
+                          ? 'text-red-500'
+                          : 'text-white'
+                      }`}
+                    >
+                      {cellContent}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#000',
-    fontFamily: '"Arial", sans-serif',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  title: {
-    fontSize: '2.5em',
-    color: '#fff',
-    marginBottom: '10px',
-  },
-  statsContainer: {
-    backgroundColor: '#222',
-    padding: '15px',
-    borderRadius: '8px',
-    boxShadow: '0px 4px 8px rgba(255, 255, 255, 0.1)',
-    marginBottom: '20px',
-    width: '80%',
-    maxWidth: '300px',
-    color: '#fff',
-  },
-  gameOverText: {
-    color: '#e63946',
-  },
-  button: {
-    backgroundColor: '#e63946',
-    color: '#fff',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-  },
-  mazeContainer: {
-    display: 'grid',
-    gridTemplateColumns: `repeat(20, 30px)`,
-    gap: '4px',
-  },
-  cell: {
-    width: 30,
-    height: 30,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '4px',
-    fontSize: '1.2em',
-    fontWeight: 'bold',
-    border: '1px solid #bbb',
-  },
 };
 
 export default MazeGame;

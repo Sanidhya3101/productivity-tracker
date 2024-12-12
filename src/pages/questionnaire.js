@@ -59,7 +59,7 @@ export default function Questionnaire({ onComplete = () => {} }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-slate-800 backdrop-blur-sm flex items-center justify-center p-4">
       <Card className="w-full max-w-4xl max-h-[90vh] flex flex-col">
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl sm:text-3xl font-bold">Post-Task Questionnaire</CardTitle>

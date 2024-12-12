@@ -29,7 +29,8 @@ export default async function handler(req, res) {
         { id: 'keyPressed', title: 'Key Pressed' },
         { id: 'timeTaken', title: 'Time Taken (s)' },
         { id: 'isCorrect', title: 'Is Correct' },
-        { id: 'timestamp', title: 'Timestamp' },
+        // { id: 'timestamp', title: 'Timestamp' },
+        { id: 'retention_time', title: 'Resumption Time'}
       ],
       append: fs.existsSync(csvFilePath), // Append to the file if it exists
     });
@@ -37,7 +38,7 @@ export default async function handler(req, res) {
     try {
       const dataToWrite = results.map((result) => ({
         ...result,
-        timestamp: new Date().toISOString(),
+        // timestamp: new Date().toISOString(),
       }));
 
       await csvWriter.writeRecords(dataToWrite);
