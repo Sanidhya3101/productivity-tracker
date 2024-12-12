@@ -131,7 +131,8 @@ export default function TypingTest({ onTaskComplete }) {
           </div>
           {/* User Input Overlay */}
           {/* <div className="absolute top-8 left-8 right-8 bottom-8 font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none leading-relaxed"> */}
-          <div className="absolute top-8 left-8 font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none leading-relaxed">
+          {/* <div className="absolute top-8 left-8 font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none leading-relaxed"> */}
+          <div className="absolute inset-0 p-8 font-mono text-2xl whitespace-pre-wrap break-words pointer-events-none leading-relaxed">
             {[...text].map((expectedChar, i) => {
               const char = input[i];
               let className = "";
