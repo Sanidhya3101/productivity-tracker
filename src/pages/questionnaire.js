@@ -9,16 +9,17 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 const questions = [
-  { id: 1, text: "I stayed focused throughout the task without getting distracted.", category: "Engagement" },
-  { id: 2, text: "I enjoyed working on this task", category: "Task Satisfaction" },
-  { id: 3, text: "I feel that I performed well in this task", category: "Perceived Performance" },
-  { id: 4, text: "I was effective in achieving the goals of the task.", category: "Perceived Performance" },
-  { id: 5, text: "I could recall specific details about the task after the interruption", category: "Retention" },
-  { id: 6, text: "I retained important information presented during the task.", category: "Retention" },
-  { id: 7, text: "I found this task to be challenging", category: "Task Difficulty" },
-  { id: 8, text: "I had to put a lot of effort into completing this task.", category: "Task Difficulty" },
-  { id: 9, text: "I would be willing to do a similar task in the future", category: "Task Satisfaction" },
-]
+  { id: 1, text: "I stayed focused and avoided distractions throughout the task.", category: "Engagement" },
+  { id: 2, text: "I enjoyed working on this task and found it fulfilling.", category: "Task Satisfaction" },
+  { id: 3, text: "I feel that I performed well and was productive during this task.", category: "Perceived Performance" },
+  { id: 4, text: "I effectively achieved the goals and objectives of this task.", category: "Perceived Performance" },
+  { id: 5, text: "I was able to quickly resume the task and recall important details after interruptions.", category: "Retention" },
+  { id: 6, text: "I retained the critical information presented or learned during this task.", category: "Retention" },
+  { id: 7, text: "I found this task to be appropriately challenging, but not overwhelming.", category: "Task Difficulty" },
+  { id: 8, text: "I had to put in significant effort to complete the task, but it felt manageable.", category: "Task Difficulty" },
+  { id: 9, text: "I would be willing and motivated to do a similar task in the future.", category: "Task Satisfaction" },
+  { id: 10, text: "I believe my productivity in this task was high and met my expectations.", category: "Perceived Productivity" }
+];
 
 export default function Questionnaire({ onComplete = () => {} }) {
   const [responses, setResponses] = useState({})
@@ -64,7 +65,7 @@ export default function Questionnaire({ onComplete = () => {} }) {
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl sm:text-3xl font-bold">Post-Task Questionnaire</CardTitle>
           <CardDescription className="text-base">
-            Please rate each statement from 1 (Strongly Disagree) to 5 (Strongly Agree).
+            Please rate each statement from 1 (Strongly Disagree) to 5 (Strongly Agree) with 3 meaning unsure (neither Agree nor Disagree).
           </CardDescription>
         </CardHeader>
         <ScrollArea className="flex-grow overflow-y-auto max-h-[60vh]">
