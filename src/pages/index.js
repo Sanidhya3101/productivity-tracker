@@ -11,6 +11,30 @@ import Questionnaire from './questionnaire';
 import WordMaze from './maze';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from 'axios';
+import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+
+const ffmpeg = createFFmpeg({ log: true });
+
+// Function to convert WebM to MP4
+const convertWebMtoMP4 = async (blob) => {
+  if (!ffmpeg.isLoaded()) {
+    await ffmpeg.load();
+  }
+
+  // Write the WebM file to FFmpeg's virtual filesystem
+  ffmpeg.FS('writeFile', 'recording.webm', await fetchFile(blob));
+
+  // Run the conversion command
+  await ffmpeg.run('-i', 'recording.webm', 'recording.mp4');
+
+  // Read the MP4 file from FFmpeg's virtual filesystem
+  const data = ffmpeg.FS('readFile', 'recording.mp4');
+
+  // Create a Blob from the MP4 data
+  const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+
+  return mp4Blob;
+};
 
 const TASKS = {
   TEST_START: 'TestStart',
@@ -88,6 +112,18 @@ export default function Home() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       mediaStreamRef.current = stream;
 
+      // Determine the best supported MIME type
+      let options = { mimeType: 'video/webm; codecs=vp9,opus' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'video/webm; codecs=vp8,opus' };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options = { mimeType: 'video/webm' };
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            options = {}; // Let the browser choose the default
+          }
+        }
+      }
+
       // Initialize MediaRecorder
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -108,6 +144,18 @@ export default function Home() {
     }
   };
 
+  // Helper function to download a Blob
+  const downloadBlob = (blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a); // Append to the DOM
+    a.click(); // Trigger download
+    document.body.removeChild(a); // Clean up
+    URL.revokeObjectURL(url); // Release memory
+  };
+
   // Function to stop video recording
   const stopVideoRecording = async () => {
     return new Promise((resolve, reject) => {
@@ -118,21 +166,26 @@ export default function Home() {
         mediaRecorder.onstop = async () => {
           console.log('Video recording stopped.');
 
-          // Handle the recorded video (e.g., upload to server or download)
-          const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-          
+          // Create a blob from the recorded chunks
+          const webmBlob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+
           // Reset recorded chunks
           recordedChunksRef.current = [];
 
-          // Trigger download of the video
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'recording.webm';
-          document.body.appendChild(a); // Append to the DOM
-          a.click(); // Trigger download
-          document.body.removeChild(a); // Clean up
-          URL.revokeObjectURL(url); // Release memory
+          try {
+            // Convert WebM to MP4
+            const mp4Blob = await convertWebMtoMP4(webmBlob);
+
+            // Trigger download for WebM
+            downloadBlob(webmBlob, 'recording.webm');
+
+            // Trigger download for MP4
+            downloadBlob(mp4Blob, 'recording.mp4');
+
+            console.log('Video downloaded successfully in both WebM and MP4 formats.');
+          } catch (error) {
+            console.error('Error during video conversion:', error);
+          }
 
           // Alternatively, upload the blob to the server
           // uploadVideo(blob);

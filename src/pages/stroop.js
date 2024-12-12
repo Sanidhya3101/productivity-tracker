@@ -54,7 +54,7 @@ export default function StroopTest({ onTaskComplete }) {
   // Interruption-related state
   const [showInterruption, setShowInterruption] = useState(false);
   const [interruptionInput, setInterruptionInput] = useState('');
-  const [interruptionTimer, setInterruptionTimer] = useState(5); // 60 seconds
+  const [interruptionTimer, setInterruptionTimer] = useState(60); // 60 seconds
   const [interruptionEndedAt, setInterruptionEndedAt] = useState(null);
   const [retentionTime, setRetentionTime] = useState(null);
   const interruptionIntervalRef = useRef(null);

@@ -159,7 +159,7 @@ const MazeGame = ({ onTaskComplete }) => {
         <div className="w-full max-w-5xl rounded-3xl border-solid border-4 border-black p-4">
           <header className="text-center">
             <h1 className="text-4xl font-bold mb-2 text-gradient">Maze Game</h1>
-            <p className="text-xl text-red-500 italic">Navigate through the maze using arrow keys.</p>
+            <p className="text-xl text-red-500 italic">Navigate through the maze using the four arrow keys.</p>
           </header>
 
           <main className="mt-1">

@@ -12,7 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
-import puzzles1 from "../styles/img/puzzles1.png"; // Ensure this path is correct
+// import puzzles1 from "../styles/img/puzzles1.png"; // Ensure this path is correct
+import puzzles5 from "../styles/img/puzzles5.png"; // Ensure this path is correct
 
 export default function Mail({ onTaskComplete }) {
   // State variables
@@ -31,11 +32,17 @@ export default function Mail({ onTaskComplete }) {
   const hasShownInterruptionRef = useRef(false); // Prevent multiple interruptions
 
   // Puzzle data (only one puzzle as per request)
+  // const puzzle = {
+  //   id: 1,
+  //   image: puzzles1,
+  //   options: ['97', '98', '99', '100'],
+  //   correctAnswer: 0, // Index of the correct answer in options array
+  // };
   const puzzle = {
     id: 1,
-    image: puzzles1,
-    options: ['97', '98', '99', '100'],
-    correctAnswer: 0, // Index of the correct answer in options array
+    image: puzzles5,
+    options: ['6', '7', '8', '4'],
+    correctAnswer: 2, // Index of the correct answer in options array
   };
 
   // Email question

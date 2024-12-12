@@ -1,5 +1,3 @@
-// lib/scriptManager.js
-
 import { spawn } from 'child_process';
 
 class ScriptManager {
@@ -15,7 +13,9 @@ class ScriptManager {
     return new Promise((resolve, reject) => {
       try {
         // Start first Python script
-        const script1 = spawn('python', ['C:/Users/meena/OneDrive/Desktop/productivity-tracker/src/utils/pythonInputCaptures/key_press.py']);
+        const script1 = spawn('python', [
+          'C:/Users/meena/OneDrive/Desktop/productivity-tracker/src/utils/pythonInputCaptures/key_press.py',
+        ]);
 
         script1.stdout.on('data', (data) => {
           console.log(`Script1: ${data}`);
@@ -26,7 +26,9 @@ class ScriptManager {
         });
 
         // Start second Python script
-        const script2 = spawn('python', ['C:/Users/meena/OneDrive/Desktop/productivity-tracker/src/utils/pythonInputCaptures/mouse_clicks.py']);
+        const script2 = spawn('python', [
+          'C:/Users/meena/OneDrive/Desktop/productivity-tracker/src/utils/pythonInputCaptures/mouse_clicks.py',
+        ]);
 
         script2.stdout.on('data', (data) => {
           console.log(`Script2: ${data}`);
@@ -56,7 +58,7 @@ class ScriptManager {
             console.log(`Script with PID ${script.pid} stopped.`);
           }
         });
-        this.scripts = []; // Clear the scripts array
+        this.scripts.length = 0; // Clear the scripts array without reassigning
         resolve();
       } catch (error) {
         console.error('Error stopping Python scripts:', error);

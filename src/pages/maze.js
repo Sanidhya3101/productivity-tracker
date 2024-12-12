@@ -46,7 +46,7 @@ function WordMaze({ onTaskComplete }) {
   // Interruption-related State
   const [showInterruption, setShowInterruption] = useState(false);
   const [interruptionInput, setInterruptionInput] = useState('');
-  const [interruptionTimer, setInterruptionTimer] = useState(5); // 60 seconds
+  const [interruptionTimer, setInterruptionTimer] = useState(60); // 60 seconds
   const interruptionIntervalRef = useRef(null);
   const interruptionInputRef = useRef('');
 
@@ -274,7 +274,7 @@ function WordMaze({ onTaskComplete }) {
           <header className="text-center">
             <h1 className="text-5xl font-bold mb-2 text-gradient">Word Maze Game</h1>
             <p className="text-xl text-red-500 italic">
-              Find all the hidden words in the grid. Select letters by clicking on adjacent cells and press Enter to check.
+              Find all the hidden words in the grid. Select letters by clicking on adjacent cells and press Enter to check. In case of a cell or cells being wrongly selected please press enter to clear selection.
             </p>
           </header>
           
@@ -360,7 +360,7 @@ function WordMaze({ onTaskComplete }) {
               <DialogHeader>
                 <DialogDescription className="text-lg mb-6">
                   <p className="text-white mb-4">
-                    <strong>List as many unusual uses related to a "bucket" as you can.</strong>
+                    <strong>List as many novel features for a smartphone (that do not exist yet) as you can.</strong>
                   </p>
                   <p className="text-white mb-4">
                     You have <strong>{interruptionTimer}</strong> seconds. Separate each use with a comma.
