@@ -6,11 +6,22 @@ import path from 'path';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { puzzleId, timeTaken, solved } = req.body;
+    const { puzzles } = req.body;
 
     // Validate the request body
-    if (puzzleId === undefined || timeTaken === undefined || solved === undefined) {
-      return res.status(400).json({ error: 'Missing required fields.' });
+    if (!puzzles || !Array.isArray(puzzles)) {
+      return res.status(400).json({ error: 'Puzzles array is required.' });
+    }
+
+    // Ensure each puzzle object has the required fields
+    for (const puzzle of puzzles) {
+      if (
+        puzzle.puzzleId === undefined ||
+        puzzle.timeTaken === undefined ||
+        puzzle.solved === undefined
+      ) {
+        return res.status(400).json({ error: 'Each puzzle must have puzzleId, timeTaken, and solved fields.' });
+      }
     }
 
     // Define the directory and file path
@@ -34,15 +45,8 @@ export default async function handler(req, res) {
     });
 
     try {
-      // Prepare the data to write
-      const dataToWrite = [{
-        puzzleId,
-        timeTaken,
-        solved,
-      }];
-
       // Write the records to the CSV file
-      await csvWriter.writeRecords(dataToWrite);
+      await csvWriter.writeRecords(puzzles);
 
       // Respond with a success message
       res.status(200).json({ message: 'Interruption data saved successfully.' });

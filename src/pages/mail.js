@@ -12,8 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
-// import puzzles1 from "../styles/img/puzzles1.png"; // Ensure this path is correct
-import puzzles5 from "../styles/img/puzzles5.png"; // Ensure this path is correct
+
+// Import puzzle images
+import puzzles5 from "../styles/img/puzzles5.png";
+import puzzles6 from "../styles/img/puzzles6.png";
+import puzzles7 from "../styles/img/puzzles7.png";
 
 export default function Mail({ onTaskComplete }) {
   // State variables
@@ -31,19 +34,30 @@ export default function Mail({ onTaskComplete }) {
   const hasCalculatedRetentionTimeRef = useRef(false); // Flag to calculate retention time once
   const hasShownInterruptionRef = useRef(false); // Prevent multiple interruptions
 
-  // Puzzle data (only one puzzle as per request)
-  // const puzzle = {
-  //   id: 1,
-  //   image: puzzles1,
-  //   options: ['97', '98', '99', '100'],
-  //   correctAnswer: 0, // Index of the correct answer in options array
-  // };
-  const puzzle = {
-    id: 1,
-    image: puzzles5,
-    options: ['6', '7', '8', '4'],
-    correctAnswer: 2, // Index of the correct answer in options array
-  };
+  // Define multiple puzzles
+  const puzzles = [
+    {
+      id: 5,
+      image: puzzles5,
+      options: ['6', '7', '8', '4'],
+      correctAnswer: 2, // Index of the correct answer in options array
+    },
+    {
+      id: 6,
+      image: puzzles6,
+      options: ['2', '5', '9', '3'],
+      correctAnswer: 1,
+    },
+    {
+      id: 7,
+      image: puzzles7,
+      options: ['10', '11', '12', '9'],
+      correctAnswer: 0,
+    }
+  ];
+
+  // Track user answers for the puzzles (null if not chosen yet)
+  const [userAnswers, setUserAnswers] = useState(Array(puzzles.length).fill(null));
 
   // Email question
   const question =
@@ -89,7 +103,7 @@ export default function Mail({ onTaskComplete }) {
         setInterruptionTimer(prev => {
           if (prev <= 1) {
             clearInterval(interval);
-            handleInterruptionSubmit(false, 120); // Not solved within time
+            handleInterruptionSubmit(false); // Not solved within time
             return 0;
           }
           return prev - 1;
@@ -102,41 +116,57 @@ export default function Mail({ onTaskComplete }) {
   }, [showInterruption]);
 
   // Handle puzzle answer selection
-  const handlePuzzleAnswer = (selectedOptionIndex) => {
-    const isCorrect = selectedOptionIndex === puzzle.correctAnswer;
-    const timeTaken = 120 - interruptionTimer; // Time taken to solve puzzle
-    handleInterruptionSubmit(isCorrect, timeTaken);
+  const handlePuzzleAnswer = (puzzleIndex, selectedOptionIndex) => {
+    const updatedAnswers = [...userAnswers];
+    updatedAnswers[puzzleIndex] = selectedOptionIndex;
+    setUserAnswers(updatedAnswers);
   };
 
   // Handle interruption submission
-  const handleInterruptionSubmit = async (solved, timeTaken) => {
+  const handleInterruptionSubmit = async (solvedManually = true) => {
     setShowInterruption(false);
     interruptionEndTimeRef.current = Date.now(); // Record end time of interruption
 
+    const timeTaken = 120 - interruptionTimer; // Time taken to solve puzzle set
+
+    // Determine correctness of each puzzle
+    const puzzleResults = puzzles.map((puzzle, index) => {
+      const chosenAnswer = userAnswers[index];
+      const isCorrect = solvedManually && chosenAnswer === puzzle.correctAnswer;
+      return {
+        puzzleId: puzzle.id,
+        timeTaken: timeTaken, // same time taken for all, or you could differentiate if needed
+        solved: isCorrect
+      };
+    });
+
     // Submit interruption data
-    await submitInterruption(puzzle.id, timeTaken, solved);
+    await submitInterruption(puzzleResults);
 
-    // Reset interruption timer
+    // Reset interruption timer and user answers
     setInterruptionTimer(120);
+    setUserAnswers(Array(puzzles.length).fill(null));
 
-    if (solved) {
-      setIsTimerActive(true); // Resume the main timer if puzzle is solved
+    // If at least one puzzle is solved correctly, resume timer. 
+    // Or if you require all to be correct to continue, handle that logic accordingly.
+    // Here, we'll allow resuming if all are correct (you can change this as needed).
+    const allCorrect = puzzleResults.every(r => r.solved === true);
+    if (allCorrect) {
+      setIsTimerActive(true); // Resume the main timer if puzzle set is solved correctly
     } else {
-      // Optionally handle what happens if the puzzle wasn't solved
-      // For example, you might want to end the task or notify the user
+      // If not solved, you can decide what to do. Here we just resume as per original logic.
+      setIsTimerActive(true);
     }
   };
 
   // Submit interruption data via API
-  const submitInterruption = async (puzzleId, timeTaken, solved) => {
+  const submitInterruption = async (puzzleResults) => {
     try {
       const response = await fetch('/api/save-mail-interruption', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          puzzleId,
-          timeTaken,
-          solved,
+          puzzles: puzzleResults,
         }),
       });
 
@@ -145,7 +175,6 @@ export default function Mail({ onTaskComplete }) {
       }
 
       console.log('Interruption data saved successfully');
-
     } catch (error) {
       console.error('Error saving interruption data:', error);
     }
@@ -200,7 +229,6 @@ export default function Mail({ onTaskComplete }) {
         hasShownInterruptionRef.current = false; // Allow interruptions again if needed
       } catch (error) {
         console.error('Error saving mail content:', error);
-        // alert('There was an error saving your response. Please try again.');
       }
     }
   };
@@ -216,9 +244,6 @@ export default function Mail({ onTaskComplete }) {
               <p className="text-white mb-4">
                 <strong>{question}</strong>
               </p>
-              {/* <p className="text-white mb-4">
-                You will be required to solve a puzzle interruption during this task. Please press the Start button to begin.
-              </p> */}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -233,40 +258,35 @@ export default function Mail({ onTaskComplete }) {
       <Dialog open={showInterruption}>
         <DialogContent className="bg-[#0E121B] text-white max-w-3xl w-full p-8 rounded-2xl">
           <DialogHeader>
-            {/* <DialogTitle className="text-3xl mb-4">Puzzle Interruption</DialogTitle> */}
             <DialogDescription className="text-lg mb-6">
               <p className="text-white mb-4">
-                <strong>Solve the puzzle below within 2 minutes to continue your task.</strong>
+                <strong>Solve the following 3 puzzles within 2 minutes to continue your task.</strong>
               </p>
-              <div className="flex flex-col items-center">
-                {/* <Image
-                  src={puzzle.image}
-                  alt={`Puzzle ${puzzle.id}`}
-                  width={300}
-                  height={200}
-                  className="mb-4"
-                /> */}
-                <div className="w-full max-w-md">
-                  <Image
-                    src={puzzle.image}
-                    alt={`Puzzle ${puzzle.id}`}
-                    width={500} // Increased width
-                    height={300} // Increased height
-                    className="mb-6 rounded-lg object-contain" // Added rounded corners and object-fit
-                  />
-                </div>
-                {/* <div className="grid grid-cols-2 gap-4"> */}
-                <div className="w-full max-w-md grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {puzzle.options.map((option, index) => (
-                    <Button
-                      key={index}
-                      onClick={() => handlePuzzleAnswer(index)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
+              <div className="flex flex-col items-center space-y-6">
+                {puzzles.map((puzzle, pIndex) => (
+                  <div key={puzzle.id} className="w-full max-w-md border-b border-gray-600 pb-4">
+                    <Image
+                      src={puzzle.image}
+                      alt={`Puzzle ${puzzle.id}`}
+                      width={500}
+                      height={300}
+                      className="mb-6 rounded-lg object-contain"
+                    />
+                    <div className="w-full max-w-md grid grid-cols-2 gap-4">
+                      {puzzle.options.map((option, oIndex) => (
+                        <Button
+                          key={oIndex}
+                          onClick={() => handlePuzzleAnswer(pIndex, oIndex)}
+                          className={`${
+                            userAnswers[pIndex] === oIndex ? 'bg-blue-700' : 'bg-blue-500'
+                          } hover:bg-blue-700 text-white font-bold py-2 px-4 rounded`}
+                        >
+                          {option}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </DialogDescription>
           </DialogHeader>
@@ -275,12 +295,9 @@ export default function Mail({ onTaskComplete }) {
               <p className="text-xl">
                 Time Remaining: <span className="text-red-500">{interruptionTimer}</span> seconds
               </p>
-              {/* Hide Submit button when time is not up */}
-              {interruptionTimer === 0 && (
-                <Button onClick={() => handleInterruptionSubmit(false, 120)} className="w-full py-4 mt-4 text-lg">
-                  Submit
-                </Button>
-              )}
+              <Button onClick={() => handleInterruptionSubmit(true)} className="w-full py-4 mt-4 text-lg">
+                Submit All Puzzles
+              </Button>
             </div>
           </DialogFooter>
         </DialogContent>
@@ -330,18 +347,6 @@ export default function Mail({ onTaskComplete }) {
           </footer>
         </div>
       </div>
-
-      {/* Timer Display */}
-      {/* <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 px-4 py-2 rounded-md">
-        <div className="text-xl font-bold">
-          Time: {timer}s
-        </div>
-        {retentionTime !== null && (
-          <div className="text-xl font-bold">
-            Retention Time: {retentionTime}s
-          </div>
-        )}
-      </div> */}
     </div>
   );
 }
