@@ -261,7 +261,7 @@ export default function Mail({ onTaskComplete }) {
           <DialogHeader>
             <DialogDescription className="text-lg mb-6">
               <p className="text-white mb-4">
-                <strong>Solve the puzzle within 2 minutes to continue your task.</strong>
+                <strong>Solve the puzzle within 30 seconds!</strong>
               </p>
               <div className="flex flex-col items-center space-y-6">
                 {currentPuzzle && (
