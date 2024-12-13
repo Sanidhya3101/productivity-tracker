@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
@@ -25,9 +24,12 @@ export default function Mail({ onTaskComplete }) {
   const [timer, setTimer] = useState(0); // Main timer in seconds
   const [isTimerActive, setIsTimerActive] = useState(false); // Timer active flag
   const [showInterruption, setShowInterruption] = useState(false); // Interruption dialog visibility
-  const [interruptionTimer, setInterruptionTimer] = useState(120); // 2-minute interruption timer
+  const [interruptionTimer, setInterruptionTimer] = useState(30); // 30-second timer per puzzle
   const [retentionTime, setRetentionTime] = useState(null); // Retention time
   const [wordCount, setWordCount] = useState(0); // Live word count
+
+  // Current puzzle index
+  const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
 
   // Refs
   const interruptionEndTimeRef = useRef(null); // Timestamp when interruption ends
@@ -40,7 +42,7 @@ export default function Mail({ onTaskComplete }) {
       id: 5,
       image: puzzles5,
       options: ['6', '7', '8', '4'],
-      correctAnswer: 2, // Index of the correct answer in options array
+      correctAnswer: 2, // index of correct answer
     },
     {
       id: 6,
@@ -56,10 +58,6 @@ export default function Mail({ onTaskComplete }) {
     }
   ];
 
-  // Track user answers for the puzzles (null if not chosen yet)
-  const [userAnswers, setUserAnswers] = useState(Array(puzzles.length).fill(null));
-
-  // Email question
   const question =
     'Write a concise and professional email to your manager requesting a leave application while clearly specifying your reason for doing so. Your submission will be evaluated on creativity, tone, formatting, and overall communication effectiveness.';
 
@@ -92,10 +90,12 @@ export default function Mail({ onTaskComplete }) {
       setShowInterruption(true);
       setIsTimerActive(false); // Pause the main timer
       hasShownInterruptionRef.current = true; // Ensure interruption shows only once
+      setCurrentPuzzleIndex(0); // Start with the first puzzle
+      setInterruptionTimer(30); // Reset timer for first puzzle
     }
   }, [isTimerActive, wordCount]);
 
-  // Interruption timer effect
+  // Interruption timer effect for the current puzzle
   useEffect(() => {
     let interval;
     if (showInterruption) {
@@ -103,7 +103,7 @@ export default function Mail({ onTaskComplete }) {
         setInterruptionTimer(prev => {
           if (prev <= 1) {
             clearInterval(interval);
-            handleInterruptionSubmit(false); // Not solved within time
+            handlePuzzleTimeout(); // Puzzle not solved in time
             return 0;
           }
           return prev - 1;
@@ -113,60 +113,59 @@ export default function Mail({ onTaskComplete }) {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [showInterruption]);
+  }, [showInterruption, currentPuzzleIndex]);
 
   // Handle puzzle answer selection
-  const handlePuzzleAnswer = (puzzleIndex, selectedOptionIndex) => {
-    const updatedAnswers = [...userAnswers];
-    updatedAnswers[puzzleIndex] = selectedOptionIndex;
-    setUserAnswers(updatedAnswers);
+  const handlePuzzleAnswer = async (selectedOptionIndex) => {
+    const currentPuzzle = puzzles[currentPuzzleIndex];
+    const isCorrect = selectedOptionIndex === currentPuzzle.correctAnswer;
+    const timeTaken = 30 - interruptionTimer; // Time taken to solve current puzzle
+
+    await submitInterruption(currentPuzzle.id, timeTaken, isCorrect);
+    moveToNextPuzzle();
   };
 
-  // Handle interruption submission
-  const handleInterruptionSubmit = async (solvedManually = true) => {
-    setShowInterruption(false);
-    interruptionEndTimeRef.current = Date.now(); // Record end time of interruption
+  // If puzzle times out
+  const handlePuzzleTimeout = async () => {
+    const currentPuzzle = puzzles[currentPuzzleIndex];
+    const timeTaken = 30;
+    const solved = false;
 
-    const timeTaken = 120 - interruptionTimer; // Time taken to solve puzzle set
+    await submitInterruption(currentPuzzle.id, timeTaken, solved);
+    moveToNextPuzzle();
+  };
 
-    // Determine correctness of each puzzle
-    const puzzleResults = puzzles.map((puzzle, index) => {
-      const chosenAnswer = userAnswers[index];
-      const isCorrect = solvedManually && chosenAnswer === puzzle.correctAnswer;
-      return {
-        puzzleId: puzzle.id,
-        timeTaken: timeTaken, // same time taken for all, or you could differentiate if needed
-        solved: isCorrect
-      };
-    });
-
-    // Submit interruption data
-    await submitInterruption(puzzleResults);
-
-    // Reset interruption timer and user answers
-    setInterruptionTimer(120);
-    setUserAnswers(Array(puzzles.length).fill(null));
-
-    // If at least one puzzle is solved correctly, resume timer. 
-    // Or if you require all to be correct to continue, handle that logic accordingly.
-    // Here, we'll allow resuming if all are correct (you can change this as needed).
-    const allCorrect = puzzleResults.every(r => r.solved === true);
-    if (allCorrect) {
-      setIsTimerActive(true); // Resume the main timer if puzzle set is solved correctly
+  // Move to next puzzle or end interruption
+  const moveToNextPuzzle = () => {
+    if (currentPuzzleIndex < puzzles.length - 1) {
+      // Move to next puzzle
+      setCurrentPuzzleIndex(currentPuzzleIndex + 1);
+      setInterruptionTimer(30); // Reset timer for the next puzzle
     } else {
-      // If not solved, you can decide what to do. Here we just resume as per original logic.
-      setIsTimerActive(true);
+      // All puzzles done
+      endInterruption();
     }
   };
 
-  // Submit interruption data via API
-  const submitInterruption = async (puzzleResults) => {
+  // End the interruption and resume main task
+  const endInterruption = () => {
+    setShowInterruption(false);
+    interruptionEndTimeRef.current = Date.now(); // Record end time of interruption
+    // The main timer will resume when the user starts typing again (as per original logic)
+    // OR if you want to resume immediately, you could do `setIsTimerActive(true);`
+    // We'll stick to original logic: retention time is measured once user resumes typing.
+  };
+
+  // Submit interruption data via API for each puzzle
+  const submitInterruption = async (puzzleId, timeTaken, solved) => {
     try {
       const response = await fetch('/api/save-mail-interruption', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          puzzles: puzzleResults,
+          puzzleId,
+          timeTaken,
+          solved,
         }),
       });
 
@@ -180,7 +179,7 @@ export default function Mail({ onTaskComplete }) {
     }
   };
 
-  // Handle key press in Textarea to calculate retention time
+  // Handle key press in Textarea to calculate retention time and resume main timer
   const handleKeyDown = (e) => {
     if (interruptionEndTimeRef.current && !hasCalculatedRetentionTimeRef.current) {
       const firstKeyPressTime = Date.now();
@@ -233,13 +232,15 @@ export default function Mail({ onTaskComplete }) {
     }
   };
 
+  const currentPuzzle = puzzles[currentPuzzleIndex];
+
   return (
     <div className="min-h-screen bg-slate-800 text-white flex flex-col items-center justify-center p-4 relative">
       {/* Start Dialog */}
       <Dialog open={isDialogOpen}>
         <DialogContent className="bg-[#0E121B] text-white max-w-3xl w-full p-8 rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-4xl mb-6">Welcome to the Email Task</DialogTitle>
+            <h2 className="text-4xl mb-6">Welcome to the Email Task</h2>
             <DialogDescription className="text-lg mb-6">
               <p className="text-white mb-4">
                 <strong>{question}</strong>
@@ -254,39 +255,37 @@ export default function Mail({ onTaskComplete }) {
         </DialogContent>
       </Dialog>
 
-      {/* Interruption Dialog */}
+      {/* Interruption Dialog (Show one puzzle at a time) */}
       <Dialog open={showInterruption}>
         <DialogContent className="bg-[#0E121B] text-white max-w-3xl w-full p-8 rounded-2xl">
           <DialogHeader>
             <DialogDescription className="text-lg mb-6">
               <p className="text-white mb-4">
-                <strong>Solve the following 3 puzzles within 2 minutes to continue your task.</strong>
+                <strong>Solve the puzzle within 2 minutes to continue your task.</strong>
               </p>
               <div className="flex flex-col items-center space-y-6">
-                {puzzles.map((puzzle, pIndex) => (
-                  <div key={puzzle.id} className="w-full max-w-md border-b border-gray-600 pb-4">
+                {currentPuzzle && (
+                  <div className="w-full max-w-md">
                     <Image
-                      src={puzzle.image}
-                      alt={`Puzzle ${puzzle.id}`}
+                      src={currentPuzzle.image}
+                      alt={`Puzzle ${currentPuzzle.id}`}
                       width={500}
                       height={300}
                       className="mb-6 rounded-lg object-contain"
                     />
                     <div className="w-full max-w-md grid grid-cols-2 gap-4">
-                      {puzzle.options.map((option, oIndex) => (
+                      {currentPuzzle.options.map((option, oIndex) => (
                         <Button
                           key={oIndex}
-                          onClick={() => handlePuzzleAnswer(pIndex, oIndex)}
-                          className={`${
-                            userAnswers[pIndex] === oIndex ? 'bg-blue-700' : 'bg-blue-500'
-                          } hover:bg-blue-700 text-white font-bold py-2 px-4 rounded`}
+                          onClick={() => handlePuzzleAnswer(oIndex)}
+                          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                         >
                           {option}
                         </Button>
                       ))}
                     </div>
                   </div>
-                ))}
+                )}
               </div>
             </DialogDescription>
           </DialogHeader>
@@ -295,9 +294,6 @@ export default function Mail({ onTaskComplete }) {
               <p className="text-xl">
                 Time Remaining: <span className="text-red-500">{interruptionTimer}</span> seconds
               </p>
-              <Button onClick={() => handleInterruptionSubmit(true)} className="w-full py-4 mt-4 text-lg">
-                Submit All Puzzles
-              </Button>
             </div>
           </DialogFooter>
         </DialogContent>
