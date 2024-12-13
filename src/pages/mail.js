@@ -101,12 +101,19 @@ export default function Mail({ onTaskComplete }) {
     if (showInterruption) {
       interval = setInterval(() => {
         setInterruptionTimer(prev => {
-          if (prev <= 1) {
+          const newVal = prev - 1;
+          if (newVal < 0) {
             clearInterval(interval);
-            handlePuzzleTimeout(); // Puzzle not solved in time
+            handlePuzzleTimeout(0);
             return 0;
           }
-          return prev - 1;
+          if (newVal === 0) {
+            // Time ran out exactly at this moment
+            clearInterval(interval);
+            handlePuzzleTimeout(0);
+            return 0;
+          }
+          return newVal;
         });
       }, 1000);
     }
@@ -118,8 +125,9 @@ export default function Mail({ onTaskComplete }) {
   // Handle puzzle answer selection
   const handlePuzzleAnswer = async (selectedOptionIndex) => {
     const currentPuzzle = puzzles[currentPuzzleIndex];
+    // Calculate time taken at the moment of answering
+    const timeTaken = 60 - interruptionTimer; 
     const isCorrect = selectedOptionIndex === currentPuzzle.correctAnswer;
-    const timeTaken = 60 - interruptionTimer; // Time taken to solve current puzzle
 
     await submitInterruption(currentPuzzle.id, timeTaken, isCorrect);
     moveToNextPuzzle();
@@ -128,7 +136,7 @@ export default function Mail({ onTaskComplete }) {
   // If puzzle times out
   const handlePuzzleTimeout = async () => {
     const currentPuzzle = puzzles[currentPuzzleIndex];
-    const timeTaken = 60;
+    const timeTaken = 60; // Since time ran out, full 60 seconds used
     const solved = false;
 
     await submitInterruption(currentPuzzle.id, timeTaken, solved);
@@ -147,13 +155,11 @@ export default function Mail({ onTaskComplete }) {
     }
   };
 
-  // End the interruption and resume main task
+  // End the interruption and prepare for main task resumption
   const endInterruption = () => {
     setShowInterruption(false);
     interruptionEndTimeRef.current = Date.now(); // Record end time of interruption
-    // The main timer will resume when the user starts typing again (as per original logic)
-    // OR if you want to resume immediately, you could do `setIsTimerActive(true);`
-    // We'll stick to original logic: retention time is measured once user resumes typing.
+    // The main timer will resume when the user starts typing again.
   };
 
   // Submit interruption data via API for each puzzle
@@ -190,7 +196,7 @@ export default function Mail({ onTaskComplete }) {
     }
   };
 
-  // Handle Submit
+  // Handle Submit of the main task
   const handleSubmit = async () => {
     if (answer.trim()) {
       // Calculate total time taken
@@ -220,12 +226,12 @@ export default function Mail({ onTaskComplete }) {
         }
 
         // Reset all states
-        setAnswer(''); // Clear the input field
-        setTimer(0); // Reset timer
-        setIsTimerActive(false); // Stop timer
-        hasCalculatedRetentionTimeRef.current = false; // Reset retention time calculation
-        setRetentionTime(null); // Reset retention time
-        hasShownInterruptionRef.current = false; // Allow interruptions again if needed
+        setAnswer(''); 
+        setTimer(0); 
+        setIsTimerActive(false); 
+        hasCalculatedRetentionTimeRef.current = false; 
+        setRetentionTime(null); 
+        hasShownInterruptionRef.current = false; 
       } catch (error) {
         console.error('Error saving mail content:', error);
       }

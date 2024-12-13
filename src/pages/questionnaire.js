@@ -24,7 +24,6 @@ const questions = [
 export default function Questionnaire({ onComplete = () => {} }) {
   const [responses, setResponses] = useState({})
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [noAnswered, setNoAnswered] = useState(0)
 
   const submitResponses = async () => {
     try {
@@ -46,8 +45,9 @@ export default function Questionnaire({ onComplete = () => {} }) {
 
   const handleResponse = (questionId, value) => {
     setResponses(prev => ({ ...prev, [questionId]: value }))
-    setNoAnswered(noAnswered+1)
   }
+
+  const allAnswered = Object.keys(responses).length === questions.length;
 
   const handleSubmit = () => {
     submitResponses();
@@ -76,6 +76,7 @@ export default function Questionnaire({ onComplete = () => {} }) {
                 <p className="text-sm text-muted-foreground">{question.text}</p>
                 <RadioGroup
                   onValueChange={(value) => handleResponse(question.id, Number(value))}
+                  value={responses[question.id]?.toString() || ""}
                   className="flex justify-between pt-2"
                 >
                   {[1, 2, 3, 4, 5].map((value) => (
@@ -99,7 +100,7 @@ export default function Questionnaire({ onComplete = () => {} }) {
           </CardContent>
         </ScrollArea>
         <CardFooter className="flex justify-end pt-6">
-          <Button onClick={handleSubmit} disabled={!(noAnswered == questions.length)} className="mx-auto">
+          <Button onClick={handleSubmit} disabled={!allAnswered} className="mx-auto">
             Submit Questionnaire
           </Button>
         </CardFooter>
