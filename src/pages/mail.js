@@ -24,7 +24,7 @@ export default function Mail({ onTaskComplete }) {
   const [timer, setTimer] = useState(0); // Main timer in seconds
   const [isTimerActive, setIsTimerActive] = useState(false); // Timer active flag
   const [showInterruption, setShowInterruption] = useState(false); // Interruption dialog visibility
-  const [interruptionTimer, setInterruptionTimer] = useState(30); // 30-second timer per puzzle
+  const [interruptionTimer, setInterruptionTimer] = useState(60); // 60-second timer per puzzle
   const [retentionTime, setRetentionTime] = useState(null); // Retention time
   const [wordCount, setWordCount] = useState(0); // Live word count
 
@@ -91,7 +91,7 @@ export default function Mail({ onTaskComplete }) {
       setIsTimerActive(false); // Pause the main timer
       hasShownInterruptionRef.current = true; // Ensure interruption shows only once
       setCurrentPuzzleIndex(0); // Start with the first puzzle
-      setInterruptionTimer(30); // Reset timer for first puzzle
+      setInterruptionTimer(60); // Reset timer for first puzzle
     }
   }, [isTimerActive, wordCount]);
 
@@ -119,7 +119,7 @@ export default function Mail({ onTaskComplete }) {
   const handlePuzzleAnswer = async (selectedOptionIndex) => {
     const currentPuzzle = puzzles[currentPuzzleIndex];
     const isCorrect = selectedOptionIndex === currentPuzzle.correctAnswer;
-    const timeTaken = 30 - interruptionTimer; // Time taken to solve current puzzle
+    const timeTaken = 60 - interruptionTimer; // Time taken to solve current puzzle
 
     await submitInterruption(currentPuzzle.id, timeTaken, isCorrect);
     moveToNextPuzzle();
@@ -128,7 +128,7 @@ export default function Mail({ onTaskComplete }) {
   // If puzzle times out
   const handlePuzzleTimeout = async () => {
     const currentPuzzle = puzzles[currentPuzzleIndex];
-    const timeTaken = 30;
+    const timeTaken = 60;
     const solved = false;
 
     await submitInterruption(currentPuzzle.id, timeTaken, solved);
@@ -140,7 +140,7 @@ export default function Mail({ onTaskComplete }) {
     if (currentPuzzleIndex < puzzles.length - 1) {
       // Move to next puzzle
       setCurrentPuzzleIndex(currentPuzzleIndex + 1);
-      setInterruptionTimer(30); // Reset timer for the next puzzle
+      setInterruptionTimer(60); // Reset timer for the next puzzle
     } else {
       // All puzzles done
       endInterruption();
@@ -261,7 +261,7 @@ export default function Mail({ onTaskComplete }) {
           <DialogHeader>
             <DialogDescription className="text-lg mb-6">
               <p className="text-white mb-4">
-                <strong>Solve the puzzle within 30 seconds!</strong>
+                <strong>Solve the puzzle within 60 seconds!</strong>
               </p>
               <div className="flex flex-col items-center space-y-6">
                 {currentPuzzle && (
