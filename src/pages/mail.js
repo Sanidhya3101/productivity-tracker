@@ -47,14 +47,14 @@ export default function Mail({ onTaskComplete }) {
     {
       id: 6,
       image: puzzles6,
-      options: ['2', '5', '9', '3'],
-      correctAnswer: 1,
+      options: ['152', '142', '140', '150'],
+      correctAnswer: 0,
     },
     {
       id: 7,
       image: puzzles7,
-      options: ['10', '11', '12', '9'],
-      correctAnswer: 0,
+      options: ['6', '0', '2', '4'],
+      correctAnswer: 3,
     }
   ];
 
