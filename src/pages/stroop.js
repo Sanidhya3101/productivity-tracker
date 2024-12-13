@@ -320,7 +320,7 @@ export default function StroopTest({ onTaskComplete }) {
                 {/* <DialogTitle className="text-4xl mb-6">Interruption Task</DialogTitle> */}
                 <DialogDescription className="text-lg mb-6">
                   <p className=" text-white mb-4">
-                    <strong>List as many unusual objects related to a "bucket" as you can.</strong>
+                    <strong>List as many unusual uses of a "bucket" as you can.</strong>
                   </p>
                   <p className="text-white mb-4">
                     You have <strong>1 minute</strong>. Separate each object with a comma.
