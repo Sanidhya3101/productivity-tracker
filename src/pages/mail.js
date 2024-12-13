@@ -84,9 +84,9 @@ export default function Mail({ onTaskComplete }) {
     setWordCount(words.length);
   }, [answer]);
 
-  // Trigger interruption after 75 words
+  // Trigger interruption after 50 words
   useEffect(() => {
-    if (isTimerActive && wordCount >= 75 && !hasShownInterruptionRef.current) {
+    if (isTimerActive && wordCount >= 50 && !hasShownInterruptionRef.current) {
       setShowInterruption(true);
       setIsTimerActive(false); // Pause the main timer
       hasShownInterruptionRef.current = true; // Ensure interruption shows only once
@@ -324,7 +324,7 @@ export default function Mail({ onTaskComplete }) {
                 aria-label="Answer input"
               />
               <div className="mt-2 text-right text-lg">
-                Word Count: {wordCount} / 150
+                Word Count: {wordCount} / 100
               </div>
             </section>
           </main>
@@ -332,13 +332,13 @@ export default function Mail({ onTaskComplete }) {
           <footer className="text-center">
             <Button
               className="w-32 max-w-xs text-lg py-6"
-              disabled={wordCount < 150}
+              disabled={wordCount < 100}
               onClick={handleSubmit}
             >
               Submit
             </Button>
-            {wordCount < 150 && (
-              <p className="text-red-500 mt-2">Please write at least 150 words before submitting.</p>
+            {wordCount < 100 && (
+              <p className="text-red-500 mt-2">Please write at least 100 words before submitting.</p>
             )}
           </footer>
         </div>
