@@ -51,19 +51,22 @@ export default function StroopTest({ onTaskComplete }) {
   const [gameOver, setGameOver] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
   
-  // Interruption-related state
-  const [showInterruption, setShowInterruption] = useState(false);
+  // Interruption-related states
+  const [showPreInterruption, setShowPreInterruption] = useState(false);   // Pre-interruption dialog visibility
+  const [preInterruptionTimer, setPreInterruptionTimer] = useState(30);    // 30-second timer for pre-interruption
+  const [showInterruption, setShowInterruption] = useState(false);         // Interruption dialog visibility
   const [interruptionInput, setInterruptionInput] = useState('');
-  const [interruptionTimer, setInterruptionTimer] = useState(60); // 60 seconds
+  const [interruptionTimer, setInterruptionTimer] = useState(60);          // 60 seconds for interruption
   const [interruptionEndedAt, setInterruptionEndedAt] = useState(null);
   const [retentionTime, setRetentionTime] = useState(null);
-  const interruptionIntervalRef = useRef(null);
 
+  const interruptionIntervalRef = useRef(null);
   const interruptionInputRef = useRef('');
-  
+
   // Handle key presses for Stroop Test
   const handleKeyPress = (event) => {
-    if (gameOver || !quizStarted || showInterruption) return;
+    // If game is over, not started, pre-interruption or interruption is active, do nothing
+    if (gameOver || !quizStarted || showInterruption || showPreInterruption) return;
 
     const selectedKey = event.key.toLowerCase();
     const correctKey = colorMappings[questions[currentQuestionIndex].color];
@@ -109,9 +112,10 @@ export default function StroopTest({ onTaskComplete }) {
 
     setTimes((prevTimes) => [...prevTimes, timeTaken]);
 
-    // After 10th question, trigger interruption
+    // After 10th question (index 9), show pre-interruption dialog
     if (currentQuestionIndex === 9) {
-      setShowInterruption(true);
+      setShowPreInterruption(true);
+      return; // Stop here so we don't go to next question yet
     }
 
     // Move to next question or end game
@@ -165,7 +169,7 @@ export default function StroopTest({ onTaskComplete }) {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [currentQuestionIndex, quizStarted, gameOver, showInterruption, retentionTime]);
+  }, [currentQuestionIndex, quizStarted, gameOver, showInterruption, showPreInterruption, retentionTime]);
 
   // Start the quiz
   const startQuiz = () => {
@@ -221,9 +225,17 @@ export default function StroopTest({ onTaskComplete }) {
     setInterruptionInput('');
     interruptionInputRef.current = ''; // Reset the ref as well
     setInterruptionTimer(60); // Reset timer for future interruptions if any
+
+    // Move to next question after interruption
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      setStartTime(Date.now());
+    } else {
+      setGameOver(true);
+    }
   };
 
-  // Start the interruption timer when the dialog opens
+  // Start the interruption timer when the interruption dialog opens
   useEffect(() => {
     if (showInterruption) {
       interruptionIntervalRef.current = setInterval(() => {
@@ -244,6 +256,27 @@ export default function StroopTest({ onTaskComplete }) {
       }
     };
   }, [showInterruption]);
+
+  // Pre-Interruption Timer effect
+  useEffect(() => {
+    let interval;
+    if (showPreInterruption) {
+      interval = setInterval(() => {
+        setPreInterruptionTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setShowPreInterruption(false);
+            setShowInterruption(true); // After pre interruption, show interruption
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [showPreInterruption]);
 
   return (
     <div className="min-h-screen bg-slate-800 text-white flex flex-col items-center justify-center p-4">
@@ -313,11 +346,25 @@ export default function StroopTest({ onTaskComplete }) {
             </section>
           </main>
 
+          {/* Pre-Interruption Dialog */}
+          <Dialog open={showPreInterruption}>
+            <DialogContent className="bg-[#0E121B] text-red-500 max-w-lg w-full p-6 pt-8 rounded-b-none rounded-t-2xl border-2 border-red-500 fixed top-40 left-1/2 transform -translate-x-1/2">
+              <DialogHeader>
+                <h2 className="text-3xl mb-4 text-center">Upcoming Distractive Task</h2>
+              </DialogHeader>
+              <DialogDescription className="text-lg">
+                <p className="mb-4 text-center text-white">
+                  You are about to be shown a distracting task. Please make a mental note of the current task you are doing to help you resume it effectively.
+                </p>
+                <p className="text-center text-white">Time Remaining: <span className="text-red-500">{preInterruptionTimer}</span> seconds</p>
+              </DialogDescription>
+            </DialogContent>
+          </Dialog>
+
           {/* Interruption Dialog */}
           <Dialog open={showInterruption}>
             <DialogContent className="bg-[#0E121B] text-white max-w-3xl w-full p-8 rounded-2xl">
               <DialogHeader>
-                {/* <DialogTitle className="text-4xl mb-6">Interruption Task</DialogTitle> */}
                 <DialogDescription className="text-lg mb-6">
                   <p className=" text-white mb-4">
                     <strong>List as many unusual uses of a "bucket" as you can.</strong>
@@ -364,4 +411,3 @@ export default function StroopTest({ onTaskComplete }) {
     </div>
   );
 }
-

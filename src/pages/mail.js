@@ -27,6 +27,8 @@ export default function Mail({ onTaskComplete }) {
   const [interruptionTimer, setInterruptionTimer] = useState(90); // 90-second timer per puzzle
   const [retentionTime, setRetentionTime] = useState(null); // Retention time
   const [wordCount, setWordCount] = useState(0); // Live word count
+  const [showPreInterruption, setShowPreInterruption] = useState(false); // Pre-interruption dialog visibility
+  const [preInterruptionTimer, setPreInterruptionTimer] = useState(30); // 30-second timer for pre-interruption
 
   // Current puzzle index
   const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
@@ -84,16 +86,39 @@ export default function Mail({ onTaskComplete }) {
     setWordCount(words.length);
   }, [answer]);
 
-  // Trigger interruption after 50 words
+  // Trigger pre-interruption dialog at halfway mark (wordCount >=50)
   useEffect(() => {
-    if (isTimerActive && wordCount >= 50 && !hasShownInterruptionRef.current) {
-      setShowInterruption(true);
+    if (isTimerActive && wordCount >= 50 && !hasShownInterruptionRef.current && !showPreInterruption) {
+      setShowPreInterruption(true);
       setIsTimerActive(false); // Pause the main timer
-      hasShownInterruptionRef.current = true; // Ensure interruption shows only once
-      setCurrentPuzzleIndex(0); // Start with the first puzzle
-      setInterruptionTimer(90); // Reset timer for first puzzle
+      setPreInterruptionTimer(30); // Initialize pre-interruption timer
     }
-  }, [isTimerActive, wordCount]);
+  }, [isTimerActive, wordCount, showPreInterruption]);
+
+  // Pre-interruption timer effect
+  useEffect(() => {
+    let interval;
+    if (showPreInterruption) {
+      interval = setInterval(() => {
+        setPreInterruptionTimer(prev => {
+          const newVal = prev - 1;
+          if (newVal <= 0) {
+            clearInterval(interval);
+            setShowPreInterruption(false);
+            setShowInterruption(true);
+            hasShownInterruptionRef.current = true; // Ensure interruption shows only once
+            setCurrentPuzzleIndex(0); // Start with the first puzzle
+            setInterruptionTimer(90); // Reset timer for first puzzle
+            return 0;
+          }
+          return newVal;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [showPreInterruption]);
 
   // Interruption timer effect for the current puzzle
   useEffect(() => {
@@ -104,13 +129,13 @@ export default function Mail({ onTaskComplete }) {
           const newVal = prev - 1;
           if (newVal < 0) {
             clearInterval(interval);
-            handlePuzzleTimeout(0);
+            handlePuzzleTimeout();
             return 0;
           }
           if (newVal === 0) {
             // Time ran out exactly at this moment
             clearInterval(interval);
-            handlePuzzleTimeout(0);
+            handlePuzzleTimeout();
             return 0;
           }
           return newVal;
@@ -261,6 +286,23 @@ export default function Mail({ onTaskComplete }) {
         </DialogContent>
       </Dialog>
 
+      {/* Pre-Interruption Dialog */}
+      <Dialog open={showPreInterruption}>
+        <DialogContent className="bg-[#0E121B] text-red-500 max-w-lg w-full p-6 pt-8 rounded-b-none rounded-t-2xl border-2 border-red-500 fixed top-40 left-1/2 transform -translate-x-1/2">
+          <DialogHeader>
+            <h2 className="text-3xl mb-4 text-center">Upcoming Distractive Task</h2>
+          </DialogHeader>
+          <DialogDescription className="text-lg">
+            <p className="mb-4 text-center text-white">
+              You are about to be shown a distracting task. Please make a mental note of the current task you are doing to help you resume it effectively.
+            </p>
+            <p className="text-center text-white">Time Remaining: <span className="text-red-500">{preInterruptionTimer}</span> seconds</p>
+          </DialogDescription>
+          {/* No DialogFooter to prevent any buttons */}
+        </DialogContent>
+      </Dialog>
+
+
       {/* Interruption Dialog (Show one puzzle at a time) */}
       <Dialog open={showInterruption}>
         <DialogContent className="bg-[#0E121B] text-white max-w-3xl w-full p-8 rounded-2xl">
@@ -328,6 +370,7 @@ export default function Mail({ onTaskComplete }) {
                 onChange={(e) => setAnswer(e.target.value)}
                 onKeyDown={handleKeyDown}
                 aria-label="Answer input"
+                disabled={showPreInterruption || showInterruption}
               />
               <div className="mt-2 text-right text-lg">
                 Word Count: {wordCount} / 100
@@ -338,7 +381,7 @@ export default function Mail({ onTaskComplete }) {
           <footer className="text-center">
             <Button
               className="w-32 max-w-xs text-lg py-6"
-              disabled={wordCount < 100}
+              disabled={wordCount < 100 || showPreInterruption || showInterruption}
               onClick={handleSubmit}
             >
               Submit

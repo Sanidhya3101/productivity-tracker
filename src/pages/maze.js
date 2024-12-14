@@ -62,6 +62,14 @@ function WordMaze({ onTaskComplete }) {
   const pendingRetentionTimeRef = useRef(null); // Stores the calculated retention time
   const [lastWordFoundTime, setLastWordFoundTime] = useState(0); // Tracks the timer value when the last word was found
 
+  // Pre-Interruption State
+  const [showPreInterruption, setShowPreInterruption] = useState(false); // Pre-interruption dialog visibility
+  const [preInterruptionTimer, setPreInterruptionTimer] = useState(30); // 30-second timer for pre-interruption
+
+  // Refs
+  const hasCalculatedRetentionTimeRef = useRef(false); // Flag to calculate retention time once
+  const hasShownInterruptionRef = useRef(false); // Prevent multiple interruptions
+
   // Start the main timer and reset all states
   const startTimer = () => {
     setIsTimerActive(true);
@@ -109,6 +117,32 @@ function WordMaze({ onTaskComplete }) {
       }
     };
   }, [showInterruption]);
+
+  // Pre-Interruption Timer Effect
+  useEffect(() => {
+    let interval;
+    if (showPreInterruption) {
+      // Start the 30-second countdown
+      interval = setInterval(() => {
+        setPreInterruptionTimer(prev => {
+          const newVal = prev - 1;
+          if (newVal <= 0) {
+            clearInterval(interval);
+            setShowPreInterruption(false);
+            setShowInterruption(true);
+            hasShownInterruptionRef.current = true; // Ensure interruption shows only once
+            // Initialize interruption states if needed
+            setInterruptionTimer(60); // Reset timer for interruption
+            return 0;
+          }
+          return newVal;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [showPreInterruption]);
 
   // Handle Interruption Submission
   const handleInterruptionSubmit = async () => {
@@ -184,11 +218,13 @@ function WordMaze({ onTaskComplete }) {
     }
   }, [foundWords]);
 
-  // Trigger Interruption at Halfway Point
+  // Trigger Pre-Interruption at Halfway Point
   useEffect(() => {
     const halfWords = Math.floor(wordsToFind.length / 2);
-    if (foundWords.length === halfWords && !showInterruption) { // Ensure interruption not already shown
-      setShowInterruption(true);
+    if (foundWords.length === halfWords && !showPreInterruption && !hasShownInterruptionRef.current) { // Ensure pre-interruption not already shown
+      setShowPreInterruption(true);
+      setIsTimerActive(false); // Pause the main timer
+      setPreInterruptionTimer(30); // Initialize pre-interruption timer
     }
   }, [foundWords]);
 
@@ -273,9 +309,97 @@ function WordMaze({ onTaskComplete }) {
   }, [selectedCells, foundWords, timer]);
 
   return (
-    <div className="min-h-screen bg-slate-800 text-white flex flex-col items-center justify-center p-4">
-      <div className="font-sans rounded-3xl bg-background text-foreground p-8 flex items-center justify-center">
-        <div className="w-full max-w-3xl space-y-8 rounded-2xl border-solid border-4 border-black p-4">
+    <div className="min-h-screen bg-slate-800 text-white flex flex-col items-center justify-center p-4 relative">
+      {/* Start Dialog */}
+      <Dialog open={isDialogOpen}>
+        <DialogContent className="bg-[#0E121B] text-white max-w-3xl w-full p-8 rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-4xl mb-6">Welcome to Word Maze</DialogTitle>
+            <DialogDescription className="text-lg mb-6">
+              <p className="text-white mb-4">
+                <strong>Select letters to form words.</strong>
+              </p>
+              <p className="text-white mb-4">
+                You have <strong>unlimited time</strong> to find all the words. Press the Start button to begin.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={startTimer} className="mx-auto bg-white text-black py-4 text-lg">
+              Start Quiz
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pre-Interruption Dialog */}
+      <Dialog open={showPreInterruption}>
+        <DialogContent className="bg-[#0E121B] text-red-500 max-w-lg w-full p-6 pt-8 rounded-b-none rounded-t-2xl border-2 border-red-500 fixed top-40 left-1/2 transform -translate-x-1/2 z-50">
+          <DialogHeader>
+            <DialogTitle className="text-3xl mb-4 text-center">Upcoming Distractive Task</DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="text-lg">
+            <p className="mb-4 text-center text-white">
+              You are about to be shown a distracting task. Please make a mental note of the current task you are doing to help you resume it effectively. Kindly refrain from looking for new words during this time.
+            </p>
+            <p className="text-center text-white">
+              Time Remaining: <span className="text-red-500">{preInterruptionTimer}</span> seconds
+            </p>
+          </DialogDescription>
+          {/* No DialogFooter to prevent any buttons */}
+        </DialogContent>
+      </Dialog>
+
+      {/* Interruption Dialog */}
+      <Dialog open={showInterruption}>
+        <DialogContent className="bg-[#0E121B] text-white max-w-3xl w-full p-8 rounded-2xl">
+          <DialogHeader>
+            <DialogDescription className="text-lg mb-6">
+              <p className="text-white mb-4">
+                <strong>List as many novel features for a smartphone (that do not exist yet) as you can.</strong>
+              </p>
+              <p className="text-white mb-4">
+                You have <strong>{interruptionTimer}</strong> seconds. Separate each use with a comma.
+              </p>
+              <textarea
+                className="w-full p-4 rounded-md border border-gray-500 bg-[#181B25] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-lg"
+                rows="6"
+                value={interruptionInput}
+                onChange={(e) => {
+                  setInterruptionInput(e.target.value);
+                  interruptionInputRef.current = e.target.value;
+                }}
+                placeholder="List your unusual uses here..."
+                disabled={interruptionTimer === 0}
+              />
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Timer Display */}
+          <div className="text-center mb-6">
+            {interruptionTimer > 0 ? (
+              <p className="text-xl">
+                Time Remaining: <span className="text-red-500">{interruptionTimer}</span> seconds
+              </p>
+            ) : (
+              <p className="text-xl">Time's up!</p>
+            )}
+          </div>
+          
+          {/* Submit Button */}
+          <DialogFooter>
+            {interruptionTimer === 0 && (
+              <Button onClick={handleInterruptionSubmit} className="w-full py-4 text-lg">
+                Submit
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Main Content */}
+      <div className="font-sans rounded-3xl bg-background text-foreground p-8 flex items-center justify-center w-full max-w-3xl">
+        <div className="w-full space-y-8 rounded-2xl border-solid border-4 border-black p-4">
           {/* Header Section */}
           <header className="text-center">
             <h1 className="text-5xl font-bold mb-2 text-gradient">Word Maze Game</h1>
@@ -286,29 +410,8 @@ function WordMaze({ onTaskComplete }) {
           
           {/* Main Content */}
           <main className="space-y-8">
-            {/* Instructions Dialog */}
-            <Dialog open={isDialogOpen}>
-              <DialogContent className="bg-[#0E121B] text-white max-w-3xl w-full p-8 rounded-2xl">
-                <DialogHeader>
-                  <DialogTitle className="text-4xl mb-6">Welcome to Word Maze</DialogTitle>
-                  <DialogDescription className="text-lg mb-6">
-                    <p className=" text-white mb-4">
-                      <strong>Select letters to form words.</strong>
-                    </p>
-                    <p className="text-white mb-4">
-                      You have <strong>unlimited time</strong> to find all the words. Press the Start button to begin.
-                    </p>
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button onClick={startTimer} className="mx-auto bg-white text-black py-4 text-lg">
-                    Start Quiz
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
             {/* Timer Display */}
+            {/* Uncomment if you want to display the main timer */}
             {/* <div className="flex justify-between items-center w-full mb-4 p-2">
               <div className="text-xl font-bold">
                 Time: {timer}s
@@ -360,52 +463,10 @@ function WordMaze({ onTaskComplete }) {
             </div>
           </main>
 
-          {/* Interruption Dialog */}
-          <Dialog open={showInterruption}>
-            <DialogContent className="bg-[#0E121B] text-white max-w-3xl w-full p-8 rounded-2xl">
-              <DialogHeader>
-                <DialogDescription className="text-lg mb-6">
-                  <p className="text-white mb-4">
-                    <strong>List as many novel features for a smartphone (that do not exist yet) as you can.</strong>
-                  </p>
-                  <p className="text-white mb-4">
-                    You have <strong>{interruptionTimer}</strong> seconds. Separate each use with a comma.
-                  </p>
-                  <textarea
-                    className="w-full p-4 rounded-md border border-gray-500 bg-[#181B25] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-lg"
-                    rows="6"
-                    value={interruptionInput}
-                    onChange={(e) => {
-                      setInterruptionInput(e.target.value);
-                      interruptionInputRef.current = e.target.value;
-                    }}
-                    placeholder="List your unusual uses here..."
-                    disabled={interruptionTimer === 0}
-                  />
-                </DialogDescription>
-              </DialogHeader>
-              
-              {/* Timer Display */}
-              <div className="text-center mb-6">
-                {interruptionTimer > 0 ? (
-                  <p className="text-xl">
-                    Time Remaining: <span className="text-red-500">{interruptionTimer}</span> seconds
-                  </p>
-                ) : (
-                  <p className="text-xl">Time's up!</p>
-                )}
-              </div>
-              
-              {/* Submit Button */}
-              <DialogFooter>
-                {interruptionTimer === 0 && (
-                  <Button onClick={handleInterruptionSubmit} className="w-full py-4 text-lg">
-                    Submit
-                  </Button>
-                )}
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          {/* Footer Section */}
+          <footer className="text-center">
+            {/* You can add additional footer content here if needed */}
+          </footer>
         </div>
       </div>
     </div>
