@@ -6,10 +6,10 @@ import path from 'path';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { question, answer, timeTaken, retention_time } = req.body;
+    const { question, answer, timeTaken, retention_time, time_after_intervention } = req.body;
 
     // Validate the request body
-    if (!question || !answer || timeTaken === undefined || retention_time === undefined) {
+    if (!question || !answer || timeTaken === undefined || retention_time === undefined || time_after_intervention === undefined) {
       return res.status(400).json({ error: 'Missing required fields.' });
     }
 
@@ -30,6 +30,7 @@ export default async function handler(req, res) {
         { id: 'answer', title: 'Answer' },
         { id: 'timeTaken', title: 'TimeTaken(s)' },
         { id: 'retention_time', title: 'RetentionTime(s)' },
+        { id: 'time_after_intervention', title: 'TimeAfterIntervention(s)' }, // New Column
       ],
       append: fs.existsSync(csvFilePath), // Append to the file if it exists
     });
@@ -41,6 +42,7 @@ export default async function handler(req, res) {
         answer: answer.trim(),
         timeTaken,
         retention_time,
+        time_after_intervention, // Include the new field
       }];
 
       // Write the records to the CSV file

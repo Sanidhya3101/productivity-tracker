@@ -29,6 +29,7 @@ export default function Mail({ onTaskComplete }) {
   const [wordCount, setWordCount] = useState(0); // Live word count
   const [showPreInterruption, setShowPreInterruption] = useState(false); // Pre-interruption dialog visibility
   const [preInterruptionTimer, setPreInterruptionTimer] = useState(30); // 30-second timer for pre-interruption
+  const [timeAfterIntervention, setTimeAfterIntervention] = useState(null); // New State Variable
 
   // Current puzzle index
   const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
@@ -59,9 +60,6 @@ export default function Mail({ onTaskComplete }) {
       correctAnswer: 3,
     }
   ];
-
-  // const question =
-  //   'Write a concise and professional email to your manager requesting a leave application while clearly specifying your reason for doing so. Your submission will be evaluated on creativity, tone, formatting, and overall communication effectiveness.';
 
   const question = "Draft a concise and professional email to your manager requesting approval to attend a specific training program or conference. Clearly specify how this opportunity will enhance your skills and contribute to the team's success. Your submission will be evaluated on creativity, tone, formatting, and overall communication effectiveness."
 
@@ -229,6 +227,13 @@ export default function Mail({ onTaskComplete }) {
       // Calculate total time taken
       const totalTime = timer;
 
+      // Calculate time after intervention if interruption occurred
+      let timeAfterIntervention = null;
+      if (interruptionEndTimeRef.current) {
+        const submitTime = Date.now();
+        timeAfterIntervention = (submitTime - interruptionEndTimeRef.current) / 1000; // in seconds
+      }
+
       // Submit mail content via API
       try {
         const response = await fetch('/api/save-mail-content', {
@@ -239,6 +244,7 @@ export default function Mail({ onTaskComplete }) {
             answer,
             timeTaken: totalTime,
             retention_time: retentionTime,
+            time_after_intervention: timeAfterIntervention, // New Field
           }),
         });
 
@@ -259,6 +265,8 @@ export default function Mail({ onTaskComplete }) {
         hasCalculatedRetentionTimeRef.current = false; 
         setRetentionTime(null); 
         hasShownInterruptionRef.current = false; 
+        interruptionEndTimeRef.current = null; // Reset interruption end time
+        setTimeAfterIntervention(null); // Reset the new state
       } catch (error) {
         console.error('Error saving mail content:', error);
       }
