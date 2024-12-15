@@ -13,9 +13,9 @@ import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
 
 // Import puzzle images
-import puzzles5 from "../styles/img/puzzles5.png";
-import puzzles6 from "../styles/img/puzzles6.png";
-import puzzles7 from "../styles/img/puzzles7.png";
+import puzzles8 from "../styles/img/puzzles8.png";
+import puzzles9 from "../styles/img/puzzles9.png";
+import puzzles1 from "../styles/img/puzzles1.png";
 
 export default function Mail({ onTaskComplete }) {
   // State variables
@@ -42,26 +42,28 @@ export default function Mail({ onTaskComplete }) {
   const puzzles = [
     {
       id: 5,
-      image: puzzles5,
-      options: ['6', '7', '8', '4'],
-      correctAnswer: 2, // index of correct answer
+      image: puzzles8,
+      options: ['206', '410', '96', '144'],
+      correctAnswer: 1, // index of correct answer
     },
     {
       id: 6,
-      image: puzzles6,
-      options: ['152', '142', '140', '150'],
-      correctAnswer: 0,
+      image: puzzles9,
+      options: ['14', '12', '17', '13'],
+      correctAnswer: 2,
     },
     {
       id: 7,
-      image: puzzles7,
-      options: ['6', '0', '2', '4'],
+      image: puzzles1,
+      options: ['96', '64', '3', '97'],
       correctAnswer: 3,
     }
   ];
 
-  const question =
-    'Write a concise and professional email to your manager requesting a leave application while clearly specifying your reason for doing so. Your submission will be evaluated on creativity, tone, formatting, and overall communication effectiveness.';
+  // const question =
+  //   'Write a concise and professional email to your manager requesting a leave application while clearly specifying your reason for doing so. Your submission will be evaluated on creativity, tone, formatting, and overall communication effectiveness.';
+
+  const question = "Draft a concise and professional email to your manager requesting approval to attend a specific training program or conference. Clearly specify how this opportunity will enhance your skills and contribute to the team's success. Your submission will be evaluated on creativity, tone, formatting, and overall communication effectiveness."
 
   // Handle Start button click
   const handleStart = () => {

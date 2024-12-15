@@ -17,27 +17,51 @@ const colors = ['red', 'green', 'blue', 'yellow'];
 const colorMappings = { red: 'r', green: 'g', blue: 'b', yellow: 'y' };
 
 // Define 20 Stroop Test questions
+// const questions = [
+//   { word: 'RED', color: 'blue' },
+//   { word: 'GREEN', color: 'red' },
+//   { word: 'BLUE', color: 'yellow' },
+//   { word: 'YELLOW', color: 'green' },
+//   { word: 'RED', color: 'green' },
+//   { word: 'GREEN', color: 'blue' },
+//   { word: 'BLUE', color: 'red' },
+//   { word: 'YELLOW', color: 'blue' },
+//   { word: 'RED', color: 'yellow' },
+//   { word: 'GREEN', color: 'red' },
+//   { word: 'BLUE', color: 'green' },
+//   { word: 'YELLOW', color: 'red' },
+//   { word: 'RED', color: 'blue' },
+//   { word: 'GREEN', color: 'yellow' },
+//   { word: 'BLUE', color: 'red' },
+//   { word: 'YELLOW', color: 'green' },
+//   { word: 'RED', color: 'blue' },
+//   { word: 'GREEN', color: 'red' },
+//   { word: 'BLUE', color: 'yellow' },
+//   { word: 'YELLOW', color: 'blue' },
+// ];
+
+// Define 20 Stroop Test questions for Returning Participants (Using Only Red, Green, Blue, Yellow)
 const questions = [
-  { word: 'RED', color: 'blue' },
-  { word: 'GREEN', color: 'red' },
-  { word: 'BLUE', color: 'yellow' },
-  { word: 'YELLOW', color: 'green' },
-  { word: 'RED', color: 'green' },
   { word: 'GREEN', color: 'blue' },
   { word: 'BLUE', color: 'red' },
-  { word: 'YELLOW', color: 'blue' },
+  { word: 'YELLOW', color: 'green' },
   { word: 'RED', color: 'yellow' },
-  { word: 'GREEN', color: 'red' },
   { word: 'BLUE', color: 'green' },
   { word: 'YELLOW', color: 'red' },
-  { word: 'RED', color: 'blue' },
   { word: 'GREEN', color: 'yellow' },
-  { word: 'BLUE', color: 'red' },
-  { word: 'YELLOW', color: 'green' },
   { word: 'RED', color: 'blue' },
-  { word: 'GREEN', color: 'red' },
-  { word: 'BLUE', color: 'yellow' },
   { word: 'YELLOW', color: 'blue' },
+  { word: 'BLUE', color: 'green' },
+  { word: 'GREEN', color: 'red' },
+  { word: 'RED', color: 'green' },
+  { word: 'BLUE', color: 'yellow' },
+  { word: 'YELLOW', color: 'red' },
+  { word: 'GREEN', color: 'blue' },
+  { word: 'RED', color: 'yellow' },
+  { word: 'YELLOW', color: 'green' },
+  { word: 'BLUE', color: 'red' },
+  { word: 'GREEN', color: 'yellow' },
+  { word: 'RED', color: 'blue' },
 ];
 
 export default function StroopTest({ onTaskComplete }) {
@@ -367,7 +391,7 @@ export default function StroopTest({ onTaskComplete }) {
               <DialogHeader>
                 <DialogDescription className="text-lg mb-6">
                   <p className=" text-white mb-4">
-                    <strong>List as many unusual uses of a "bucket" as you can.</strong>
+                    <strong>List as many unusual uses of a "spoon" as you can.</strong>
                   </p>
                   <p className="text-white mb-4">
                     You have <strong>1 minute</strong>. Separate each object with a comma.

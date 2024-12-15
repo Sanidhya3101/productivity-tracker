@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Clock, RotateCcw } from "lucide-react";
 
 export default function TypingTest({ onTaskComplete }) {
+  // const [text] = useState(
+  //   "The quick brown fox jumps over the lazy dog. Meanwhile, the Mighty Lion sleeps peacefully beneath the warm summer sun, and a gentle breeze rustles through the tall grass. Birds chirp melodiously, while colorful butterflies dance gracefully in the air, adding life to the serene atmosphere of the wild. In the distance, a sparkling river flows calmly, reflecting the vibrant colors of the surrounding nature."
+  // );
   const [text] = useState(
-    "The quick brown fox jumps over the lazy dog. Meanwhile, the Mighty Lion sleeps peacefully beneath the warm summer sun, and a gentle breeze rustles through the tall grass. Birds chirp melodiously, while colorful butterflies dance gracefully in the air, adding life to the serene atmosphere of the wild. In the distance, a sparkling river flows calmly, reflecting the vibrant colors of the surrounding nature."
+    "Every morning bright sun rises over the peaceful hills. Recently, the Brilliant Eagle glides gracefully over the vast mountain ranges, and a gentle wind whispers through the silent forest. Flowers bloom vibrantly, while lively dragonflies flutter elegantly in the breeze, enhancing beauty to the tranquil environment of the meadow. At the horizon, a shimmering lake glistens quietly, capturing the vivid shades of the picturesque landscape nearby."
   );
+  
 
   const [input, setInput] = useState("");
   const [startTime, setStartTime] = useState(null);

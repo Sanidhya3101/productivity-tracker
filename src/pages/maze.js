@@ -12,29 +12,62 @@ import {
 import { Button } from "@/components/ui/button";
 import axios from 'axios';
 
-const maze = [
-  ["D", "V", "D", "C", "A", "S", "V", "T", "J", "N", "N", "U", "L", "D", "I", "Y", "H", "Y"],
-  ["A", "U", "I", "T", "C", "O", "C", "U", "H", "B", "I", "S", "X", "D", "N", "C", "O", "T"],
-  ["T", "S", "R", "Z", "E", "R", "V", "O", "X", "X", "C", "E", "D", "H", "T", "R", "R", "U"],
-  ["A", "M", "E", "P", "K", "C", "E", "F", "L", "Q", "H", "R", "A", "U", "E", "E", "I", "M"],
-  ["T", "A", "C", "A", "E", "O", "H", "A", "E", "L", "E", "J", "X", "M", "R", "A", "Z", "O"],
-  ["V", "R", "T", "Y", "Y", "Z", "P", "N", "T", "A", "E", "L", "I", "A", "F", "T", "O", "N"],
-  ["O", "B", "I", "R", "B", "L", "S", "T", "O", "I", "T", "G", "S", "N", "A", "I", "N", "E"],
-  ["S", "L", "O", "N", "O", "O", "F", "E", "K", "L", "V", "U", "E", "D", "C", "V", "T", "Y"],
-  ["U", "E", "N", "P", "A", "Y", "X", "X", "V", "V", "O", "I", "R", "L", "E", "I", "A", "A"],
-  ["I", "N", "T", "E", "R", "A", "C", "T", "I", "O", "N", "G", "T", "E", "M", "T", "L", "U"],
-  ["H", "R", "B", "C", "D", "Y", "T", "I", "M", "E", "X", "I", "Y", "Y", "S", "Y", "H", "J"],
-  ["O", "T", "M", "O", "U", "S", "E", "N", "V", "E", "R", "T", "I", "C", "A", "L", "F", "F"]
-];
+// const maze = [
+//   ["D", "V", "D", "C", "A", "S", "V", "T", "J", "N", "N", "U", "L", "D", "I", "Y", "H", "Y"],
+//   ["A", "U", "I", "T", "C", "O", "C", "U", "H", "B", "I", "S", "X", "D", "N", "C", "O", "T"],
+//   ["T", "S", "R", "Z", "E", "R", "V", "O", "X", "X", "C", "E", "D", "H", "T", "R", "R", "U"],
+//   ["A", "M", "E", "P", "K", "C", "E", "F", "L", "Q", "H", "R", "A", "U", "E", "E", "I", "M"],
+//   ["T", "A", "C", "A", "E", "O", "H", "A", "E", "L", "E", "J", "X", "M", "R", "A", "Z", "O"],
+//   ["V", "R", "T", "Y", "Y", "Z", "P", "N", "T", "A", "E", "L", "I", "A", "F", "T", "O", "N"],
+//   ["O", "B", "I", "R", "B", "L", "S", "T", "O", "I", "T", "G", "S", "N", "A", "I", "N", "E"],
+//   ["S", "L", "O", "N", "O", "O", "F", "E", "K", "L", "V", "U", "E", "D", "C", "V", "T", "Y"],
+//   ["U", "E", "N", "P", "A", "Y", "X", "X", "V", "V", "O", "I", "R", "L", "E", "I", "A", "A"],
+//   ["I", "N", "T", "E", "R", "A", "C", "T", "I", "O", "N", "G", "T", "E", "M", "T", "L", "U"],
+//   ["H", "R", "B", "C", "D", "Y", "T", "I", "M", "E", "X", "I", "Y", "Y", "S", "Y", "H", "J"],
+//   ["O", "T", "M", "O", "U", "S", "E", "N", "V", "E", "R", "T", "I", "C", "A", "L", "F", "F"]
+// ];
 
 // const wordsToFind = [
 //   "MOUSE", "USER"
 // ];
 
+// const wordsToFind = [
+//   "INTERACTION", "TECHNOLOGY", "HORIZONTAL",
+//   "DIRECTION", "VERTICAL", "FEATURES", "KEYBOARD",  "MARBLE",
+//   "HUMAN", "MONEY", "NICHE", "MOUSE", "USER", "DATA", "TEXT"
+// ];
+
+const maze = [
+  ["C", "O", "M", "P", "U", "T", "E", "R", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"],
+  ["K", "L", "A", "N", "G", "U", "A", "G", "E", "M", "N", "O", "P", "Q", "R", "S", "T", "U"],
+  ["V", "W", "X", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"],
+  ["P", "Q", "R", "S", "T", "F", "U", "N", "C", "T", "I", "O", "N", "A", "B", "C", "D", "E"],
+  ["N", "E", "T", "W", "O", "R", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V"],
+  ["W", "X", "Y", "Z", "S", "Y", "S", "T", "E", "M", "D", "A", "T", "A", "B", "C", "D", "E"],
+  ["F", "G", "H", "I", "J", "D", "A", "T", "A", "B", "A", "S", "E", "C", "D", "E", "F", "G"],
+  ["H", "I", "J", "K", "L", "M", "A", "L", "G", "O", "R", "I", "T", "H", "M", "N", "O", "P"],
+  ["Q", "R", "S", "T", "U", "V", "P", "R", "O", "C", "E", "S", "S", "T", "U", "V", "W", "X"],
+  ["Y", "Z", "A", "B", "C", "I", "N", "F", "O", "R", "M", "A", "T", "I", "O", "N", "G", "H"],
+  ["I", "J", "K", "L", "M", "N", "O", "P", "S", "E", "C", "U", "R", "I", "T", "Y", "A", "B"],
+  ["C", "D", "E", "V", "A", "R", "I", "A", "B", "L", "E", "F", "G", "H", "I", "J", "K", "L"]
+];
+
 const wordsToFind = [
-  "INTERACTION", "TECHNOLOGY", "HORIZONTAL",
-  "DIRECTION", "VERTICAL", "FEATURES", "KEYBOARD",  "MARBLE",
-  "HUMAN", "MONEY", "NICHE", "MOUSE", "USER", "DATA", "TEXT"
+  "COMPUTER",
+  "LANGUAGE",
+  "PROGRAM",
+  "NETWORK",
+  "SYSTEM",
+  "DATABASE",
+  "PROCESS",
+  "SECURITY",
+  "FUNCTION",
+  "VARIABLE",
+  "OBJECT",
+  "FRAMEWORK",
+  "ALGORITHM",
+  "INFORMATION",
+  "DEVELOPER"
 ];
 
 function WordMaze({ onTaskComplete }) {
@@ -356,7 +389,7 @@ function WordMaze({ onTaskComplete }) {
           <DialogHeader>
             <DialogDescription className="text-lg mb-6">
               <p className="text-white mb-4">
-                <strong>List as many novel features for a smartphone (that do not exist yet) as you can.</strong>
+                <strong>List as many novel features for smart kitchen appliances (that do not exist yet) as you can.</strong>
               </p>
               <p className="text-white mb-4">
                 You have <strong>{interruptionTimer}</strong> seconds. Separate each use with a comma.
@@ -369,7 +402,7 @@ function WordMaze({ onTaskComplete }) {
                   setInterruptionInput(e.target.value);
                   interruptionInputRef.current = e.target.value;
                 }}
-                placeholder="List your unusual uses here..."
+                placeholder="List your novel features here..."
                 disabled={interruptionTimer === 0}
               />
             </DialogDescription>
