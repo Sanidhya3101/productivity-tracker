@@ -40,22 +40,22 @@ import axios from 'axios';
 const maze = [
   ["C", "O", "M", "P", "U", "T", "E", "R", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"],
   ["K", "L", "A", "N", "G", "U", "A", "G", "E", "M", "N", "O", "P", "Q", "R", "S", "T", "U"],
-  ["V", "W", "X", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"],
-  ["P", "Q", "R", "S", "T", "F", "U", "N", "C", "T", "I", "O", "N", "A", "B", "C", "D", "E"],
+  ["V", "W", "X", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "D"],
+  ["P", "Q", "R", "L", "T", "F", "U", "N", "C", "T", "I", "O", "N", "A", "B", "C", "D", "E"],
   ["N", "E", "T", "W", "O", "R", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V"],
   ["W", "X", "Y", "Z", "S", "Y", "S", "T", "E", "M", "D", "A", "T", "A", "B", "C", "D", "E"],
-  ["F", "G", "H", "I", "J", "D", "A", "T", "A", "B", "A", "S", "E", "C", "D", "E", "F", "G"],
-  ["H", "I", "J", "K", "L", "M", "A", "L", "G", "O", "R", "I", "T", "H", "M", "N", "O", "P"],
-  ["Q", "R", "S", "T", "U", "V", "P", "R", "O", "C", "E", "S", "S", "T", "U", "V", "W", "X"],
-  ["Y", "Z", "A", "B", "C", "I", "N", "F", "O", "R", "M", "A", "T", "I", "O", "N", "G", "H"],
-  ["I", "J", "K", "L", "M", "N", "O", "P", "S", "E", "C", "U", "R", "I", "T", "Y", "A", "B"],
+  ["F", "G", "H", "I", "J", "D", "A", "T", "A", "B", "A", "S", "E", "C", "D", "E", "F", "L"],
+  ["H", "I", "J", "K", "L", "M", "A", "L", "G", "O", "R", "I", "T", "H", "M", "N", "O", "O"],
+  ["Q", "R", "R", "T", "U", "V", "P", "R", "O", "C", "E", "S", "S", "T", "U", "V", "W", "P"],
+  ["Y", "Z", "A", "S", "C", "I", "N", "F", "O", "R", "M", "A", "T", "I", "O", "N", "G", "H"],
+  ["I", "J", "K", "L", "T", "N", "O", "P", "S", "E", "C", "U", "R", "I", "T", "Y", "A", "B"],
   ["C", "D", "E", "V", "A", "R", "I", "A", "B", "L", "E", "F", "G", "H", "I", "J", "K", "L"]
 ];
 
 const wordsToFind = [
   "COMPUTER",
   "LANGUAGE",
-  "PROGRAM",
+  "LOYAL",
   "NETWORK",
   "SYSTEM",
   "DATABASE",
@@ -63,11 +63,11 @@ const wordsToFind = [
   "SECURITY",
   "FUNCTION",
   "VARIABLE",
-  "OBJECT",
-  "FRAMEWORK",
+  "FIRST",
+  "DARE",
   "ALGORITHM",
   "INFORMATION",
-  "DEVELOPER"
+  "DEVELOP"
 ];
 
 function WordMaze({ onTaskComplete }) {
